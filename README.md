@@ -1,5 +1,9 @@
 ![](src/gopher.png)
 
+
+
+[![Gitter](https://badges.gitter.im/bioflowz/community.svg)](https://gitter.im/bioflowz/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 BioFlows Distributed Pipeline Engine
 ====================================
 Distributed Containerized Bioinformatics and Computational Workflows/Pipeline Engine built in Golang
