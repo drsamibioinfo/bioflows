@@ -73,7 +73,9 @@ func (manager *JSScriptManager) RunBefore(script models.Script,config map[string
 		config["command"] = ""
 	}
 	vm.Set("self",config)
-	vm.Set("io",&io.IO{})
+	vm.Set("io",&io.IO{
+		VM: vm,
+	})
 	code , err := manager.getCode(script,config)
 	if err != nil {
 		return err

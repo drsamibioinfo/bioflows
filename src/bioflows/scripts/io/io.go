@@ -53,7 +53,7 @@ func (o *IO) SelectSingle(call goja.FunctionCall) goja.Value{
 func (o *IO) SelectMultiple(call goja.FunctionCall) goja.Value {
 	dir := call.Arguments[0].String()
 	handles := make([]string,0)
-	filteredFiles := make([]string,0)
+	filteredFiles := make([]interface{},0)
 	for _,  val := range call.Arguments[1:]{
 		handles = append(handles,val.String())
 	}
@@ -64,24 +64,25 @@ func (o *IO) SelectMultiple(call goja.FunctionCall) goja.Value {
 	for _ , file := range foundFiles{
 		for _,  handle := range handles{
 			if strings.Contains(file.Name(),handle){
-				filteredFiles = append(filteredFiles,strings.Join([]string{dir,file.Name()},string(os.PathSeparator)))
+				filteredFiles = append(filteredFiles,file.Name())
 			}
 		}
 	}
-	return o.VM.ToValue(filteredFiles)
+	arr := o.VM.NewArray(filteredFiles...)
+	return o.VM.ToValue(arr.Export())
 }
 //ListDir(DirPath)
 func (o *IO) ListDir(call goja.FunctionCall) goja.Value {
 	dir := call.Arguments[0].String()
-	files := make([]string,0)
+	files := make([]interface{},0)
 	foundFiles, err := ioutil.ReadDir(dir)
 	if err != nil {
 		panic(err)
 	}
 	for _ , file := range foundFiles {
-		fullFilePath := strings.Join([]string{dir,file.Name()},string(os.PathSeparator))
-		files = append(files, fullFilePath)
+		//fullFilePath := strings.Join([]string{dir,file.Name()},string(os.PathSeparator))
+		files = append(files,file.Name())
 	}
-
-	return o.VM.ToValue(files)
+	arr := o.VM.NewArray(files...)
+	return o.VM.ToValue(arr.Export())
 }
