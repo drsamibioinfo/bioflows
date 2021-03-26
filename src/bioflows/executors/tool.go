@@ -323,6 +323,18 @@ func (e *ToolExecutor) execute() (models.FlowConfig,error) {
 		errorBytes = executor.GetError().Bytes()
 	}
 	toolConfig , err = e.executeAfterScripts(toolConfig)
+	toolConfig["exitCode"] = exitCode
+	if toolErr != nil {
+		toolConfig["status"] = false
+	}
+	if exitCode == 0 {
+		toolConfig["status"] = true
+	}
+	if exitCode > 0 {
+		toolConfig["status"] = false
+	}
+	delete(toolConfig,"self_dir")
+	defer e.Log(fmt.Sprintf("Tool: %s has finished.",e.ToolInstance.Name))
 	if e.ToolInstance.Shadow{
 		return toolConfig,toolErr
 	}
@@ -344,19 +356,7 @@ func (e *ToolExecutor) execute() (models.FlowConfig,error) {
 	if err != nil {
 		return toolConfig,err
 	}
-	e.Log(fmt.Sprintf("Tool: %s has finished.",e.ToolInstance.Name))
 	//Delete the temporary mapped self_dir key from the configuration
-	delete(toolConfig,"self_dir")
-	toolConfig["exitCode"] = exitCode
-	if toolErr != nil {
-		toolConfig["status"] = false
-	}
-	if exitCode == 0 {
-		toolConfig["status"] = true
-	}
-	if exitCode > 0 {
-		toolConfig["status"] = false
-	}
 	return toolConfig,toolErr
 }
 func (e *ToolExecutor) Run(t *models.ToolInstance, workflowConfig models.FlowConfig) (models.FlowConfig,error) {
