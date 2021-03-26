@@ -48,9 +48,6 @@ func (instance *BioPipeline) Prepare() {
 	//if the tool name is not set, then use the tool ID
 	if len(instance.Name) <= 0 {
 		instance.Name = instance.ID
-	} else {
-		// If the tool name exists, replace whitespace with underscores
-		instance.Name = strings.ReplaceAll(instance.Name, " ", "_")
 	}
 	//If the tool name is set , use that as the tool instance name
 	instance.Name = instance.Name
