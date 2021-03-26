@@ -15,3 +15,4 @@
  you could only allow a step in a PIPELINE to be a loop but now you 
  can allow a single Tool "type: tool" to be a loop and execute the tool like
  e.g: bf Tool run ......
+- Now, you can add config parameters to a tool or a pipeline as internal configuration parameters

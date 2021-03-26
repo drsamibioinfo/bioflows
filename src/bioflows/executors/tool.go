@@ -77,6 +77,21 @@ func (e *ToolExecutor) prepareParameters() models.FlowConfig {
 			flowConfig[k] = v
 		}
 	}
+	//We should also copy the configuration details
+	if len(e.ToolInstance.Config) > 0 {
+		configs := make(map[string]interface{})
+		for _ , param := range e.ToolInstance.Config {
+			if param.Value == nil {
+				configs[param.Name] = nil
+				continue
+			}
+			paramValue := e.exprManager.Render(param.GetParamValue(),flowConfig)
+			configs[param.Name] = paramValue
+		}
+		for k , v := range configs {
+			flowConfig[k] = v
+		}
+	}
 	if len(e.ToolInstance.Inputs) > 0 {
 		inputs := make(map[string]string)
 		for _ , param := range e.ToolInstance.Inputs{
@@ -91,7 +106,6 @@ func (e *ToolExecutor) prepareParameters() models.FlowConfig {
 			flowConfig[k] = v
 		}
 	}
-
 	if len(e.ToolInstance.Outputs) > 0{
 
 		//Prepare outputs
@@ -334,6 +348,18 @@ func (e *ToolExecutor) execute() (models.FlowConfig,error) {
 		toolConfig["status"] = false
 	}
 	delete(toolConfig,"self_dir")
+
+	defer func(){
+		 // This deferred function will delete all config keys
+		// from the current tool before it exits, because we don't want to store these configs
+		// Configurations of a tool are meant to be inclusive to the execution instance of the tool
+		// it is not meant to be stored or injected to the next tool
+		if len(e.ToolInstance.Config) > 0 {
+			for _ , param := range e.ToolInstance.Config {
+				delete(toolConfig,param.Name)
+			}
+		}
+	}()
 	defer e.Log(fmt.Sprintf("Tool: %s has finished.",e.ToolInstance.Name))
 	if e.ToolInstance.Shadow{
 		return toolConfig,toolErr
