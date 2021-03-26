@@ -71,17 +71,26 @@ func (o *IO) SelectMultiple(call goja.FunctionCall) goja.Value {
 	arr := o.VM.NewArray(filteredFiles...)
 	return o.VM.ToValue(arr.Export())
 }
-//ListDir(DirPath)
+//ListDir(DirPath : string , [Absolute: bool] )
+// Absolute : is an optional boolean parameter indicates whether the file name returned is relative or absolute
+// default : false
 func (o *IO) ListDir(call goja.FunctionCall) goja.Value {
 	dir := call.Arguments[0].String()
+	absolute := false
+	if len(call.Arguments) >= 2{
+		absolute = call.Arguments[1].ToBoolean()
+	}
 	files := make([]interface{},0)
 	foundFiles, err := ioutil.ReadDir(dir)
 	if err != nil {
 		panic(err)
 	}
 	for _ , file := range foundFiles {
-		//fullFilePath := strings.Join([]string{dir,file.Name()},string(os.PathSeparator))
-		files = append(files,file.Name())
+		var fileName string  = file.Name()
+		if absolute {
+			fileName = strings.Join([]string{dir, file.Name()}, string(os.PathSeparator))
+		}
+		files = append(files,fileName)
 	}
 	arr := o.VM.NewArray(files...)
 	return o.VM.ToValue(arr.Export())
