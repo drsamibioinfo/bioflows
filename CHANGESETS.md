@@ -8,3 +8,6 @@
 - The ability to define steps as loops within a pipeline only.
 - Added the functionality to reference local files in URL directives instead of only remote http files.
 - Added the functionality to reference local files in scripts directive as well.
+- ListDir(DirPath : string , [Absolute: bool] )
+  Absolute : is an optional boolean parameter indicates whether the file name returned is relative or absolute
+  default : false
