@@ -261,13 +261,13 @@ func (e *ToolExecutor) execute() (models.FlowConfig,error) {
 	if err != nil {
 		return toolConfig,err
 	}
-	//Defer the notification till the end of the execute method
 	if toolConfig["impede"] == true{
 		e.Log(fmt.Sprintf("Tool (%s) has been impeded.",e.ToolInstance.Name))
 		toolConfig["exitCode"] = 0
 		toolConfig["status"] = true
 		return toolConfig,nil
 	}
+	//Defer the notification till the end of the execute method
 	defer e.notify(e.ToolInstance)
 	toolCommandStr := fmt.Sprintf("%v",toolConfig["command"])
 	toolCommand := e.exprManager.Render(toolCommandStr,toolConfig)
@@ -359,13 +359,140 @@ func (e *ToolExecutor) execute() (models.FlowConfig,error) {
 	//Delete the temporary mapped self_dir key from the configuration
 	return toolConfig,toolErr
 }
+func (e *ToolExecutor) RunToolLoop(t *models.ToolInstance , workflowConfig models.FlowConfig)  (models.FlowConfig,error) {
+	e.ToolInstance = t
+	err := e.init(workflowConfig)
+	if err != nil {
+		return nil , err
+	}
+	e.Log(fmt.Sprintf("Tool (%s) is prepared successfully. ",t.Name))
+	return e.executeLoop()
+}
+func (e *ToolExecutor) executeLoop()  (models.FlowConfig,error) {
+	toolConfig , err := e.executeBeforeScripts()
+	if err != nil {
+		return toolConfig , err
+	}
+	if toolConfig["impede"] == true{
+		e.Log(fmt.Sprintf("Tool (%s) has been impeded.",e.ToolInstance.Name))
+		toolConfig["exitCode"] = 0
+		toolConfig["status"] = true
+		return toolConfig,nil
+	}
+	defer e.notify(e.ToolInstance)
+	if len(e.ToolInstance.LoopVar) == 0 {
+		errStr := "Tool is loop but no loop variable has been defined.. aborting..."
+		e.Log(fmt.Sprintf(errStr))
+		return toolConfig , fmt.Errorf(errStr)
+	}
+	var exitCode int
+	var toolErr error
+	var outputBytes []byte
+	var errorBytes []byte
+	if loop_elements , ok := toolConfig[e.ToolInstance.LoopVar]; ok {
+		if elements , islist := loop_elements.([]interface{}); islist {
+			for idx , el := range elements {
+				toolConfig[fmt.Sprintf("%s_item",e.ToolInstance.LoopVar)] = el
+				toolConfig[fmt.Sprintf("loop_index")] = idx
+				toolCommandStr := fmt.Sprintf("%v",toolConfig["command"])
+				toolCommand := e.exprManager.Render(toolCommandStr,toolConfig)
+				toolConfigKey, _ , _ := e.GetToolOutputDir()
+
+				var tempContainerConfig *models.ContainerConfig = nil
+				if e.ToolInstance.ContainerConfig != nil {
+					tempContainerConfig = e.ToolInstance.ContainerConfig
+				}else{
+					tempContainerConfig = e.pipelineContainerConfig
+				}
+				e.Log(fmt.Sprintf("Run Command : %s",toolCommand))
+				if e.isDockerized() {
+					var imageURL string
+					if tempContainerConfig == nil {
+						imageURL = fmt.Sprintf("%s/%s",dockcontainer.DOCKER_REPOSITORY,e.ToolInstance.ImageId)
+					}else{
+						imageURL = fmt.Sprintf("%s/%s",tempContainerConfig.URL,e.ToolInstance.ImageId)
+					}
+					//first try to pull the image
+					output , err := e.dockerManager.PullImage(imageURL,tempContainerConfig)
+					if err != nil {
+						return nil , err
+					}
+					//Log the output
+					e.Log(output)
+					out,outErr,toolErr := e.dockerManager.RunContainer(toolConfigKey,e.ToolInstance.ImageId,[]string{
+						"bash",
+						"-c",
+						toolCommand,
+					},false)
+					if toolErr != nil {
+						errorBytes = append(errorBytes,[]byte(toolErr.Error())...)
+						exitCode = 1
+					}else{
+						exitCode = 0
+					}
+					if out != nil {
+						outputBytes = append(outputBytes,out.Bytes()...)
+					}
+					if outErr != nil {
+						errorBytes = append(errorBytes,outErr.Bytes()...)
+					}
+				}else{
+
+					executor := &process.CommandExecutor{Command: toolCommand,CommandDir: fmt.Sprintf("%v",toolConfig[toolConfigKey])}
+					executor.Init()
+					exitCode , toolErr  = executor.Run()
+					outputBytes = append(outputBytes,executor.GetOutput().Bytes()...)
+					errorBytes = append(errorBytes,executor.GetError().Bytes()...)
+				}
+
+			}
+		}
+	}
+	toolConfig , err = e.executeAfterScripts(toolConfig)
+	toolConfig["exitCode"] = exitCode
+	if toolErr != nil {
+		toolConfig["status"] = false
+	}
+	if exitCode == 0 {
+		toolConfig["status"] = true
+	}
+	if exitCode > 0 {
+		toolConfig["status"] = false
+	}
+	delete(toolConfig,"self_dir")
+	defer e.Log(fmt.Sprintf("Tool: %s has finished.",e.ToolInstance.Name))
+	if e.ToolInstance.Shadow{
+		return toolConfig,toolErr
+	}
+	//Create output file for the output of this tool
+	toolOutputFile , err := e.CreateOutputFile("stdout","out")
+	if err != nil {
+		return toolConfig,err
+	}
+	err = helpers.WriteOrAppend(toolOutputFile,outputBytes,config.FILE_MODE_WRITABLE_PERM)
+	if err != nil {
+		return toolConfig,err
+	}
+	//Create err file for this tool
+	toolErrFile , err := e.CreateOutputFile("stderr","err")
+	if err != nil {
+		return toolConfig,err
+	}
+	err = helpers.WriteOrAppend(toolErrFile,errorBytes,config.FILE_MODE_WRITABLE_PERM)
+	if err != nil {
+		return toolConfig,err
+	}
+	//Delete the temporary mapped self_dir key from the configuration
+	return toolConfig,toolErr
+
+}
 func (e *ToolExecutor) Run(t *models.ToolInstance, workflowConfig models.FlowConfig) (models.FlowConfig,error) {
 	e.ToolInstance = t
 	err := e.init(workflowConfig)
 	if err != nil {
 		return nil,err
 	}
-	fmt.Println(fmt.Sprintf("Running (%s) Tool...",t.ID))
+	fmt.Println(fmt.Sprintf("Running (%s) Tool...",t.Name))
 	return e.execute()
 }
 

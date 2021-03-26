@@ -80,9 +80,17 @@ func RunTool(configFile string, toolPath string,workflowId string ,
 	if len(tool_name) <= 0 {
 		tool_name = workflowName
 	}
-	_ ,err = executor.Run(&models.ToolInstance{WorkflowID: workflowId,Name: workflowName ,WorkflowName: workflowName,Tool:tool.ToTool()},workflowConfig)
+	var funcCall func(*models.ToolInstance , models.FlowConfig) (models.FlowConfig,error)
+	if tool.Loop {
+		funcCall = executor.RunToolLoop
+	}else{
+		// The tool is not loop
+		funcCall = executor.Run
+	}
+	_ , err = funcCall(&models.ToolInstance{WorkflowID: workflowId,Name: workflowName ,WorkflowName: workflowName,Tool:tool.ToTool()},workflowConfig)
 	if err != nil {
 		fmt.Println(err)
 	}
 	return err
+
 }
