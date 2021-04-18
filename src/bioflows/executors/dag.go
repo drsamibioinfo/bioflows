@@ -465,6 +465,8 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 				}
 				if loop_elements , ok := config[currentFlow.LoopVar]; ok {
 					if elements, islist := loop_elements.([]interface{}); islist{
+						total_loop_config := models.FlowConfig{}
+						var loop_status bool = true
 						for idx , el := range elements{
 							nestedPipelineExecutor := DagExecutor{}
 							nestedPipelineExecutor.SetContainerConfig(p.containerConfig)
@@ -480,9 +482,16 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 								nestedPipelineExecutor.Log(err.Error())
 							}
 							pipeConfig := nestedPipelineExecutor.GetPipelineOutput()
+							total_loop_config.Fill(pipeConfig)
+							if exitCode , ok := pipeConfig["exitCode"]; ok{
+								if exitCode.(int) > 0 {
+									loop_status = false
+								}
+							}
 							err = p.contextManager.SaveState(toolKey,pipeConfig)
-
 						}
+						total_loop_config["status"] = loop_status
+						err = p.contextManager.SaveState(toolKey,total_loop_config)
 					}
 				}
 
