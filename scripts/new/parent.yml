@@ -1,0 +1,26 @@
+id: parent
+name: parent
+type: pipeline
+config:
+  - name: vars
+    type: array
+scripts:
+  - type: js
+    before: true
+    code: >
+      self.vars = [1,2,3,4,5,6,7,8,9,10];
+steps:
+  - id: first
+    name: first
+    loop: true
+    loop_var: "vars"
+    type: pipeline
+    url: "file:///single.yml"
+  - id: second
+    name: second
+    depends: first
+    command: "echo 'Hello World'"
+  - id: third
+    name: third
+    depends: second
+    command: "echo 'Hello from third'"

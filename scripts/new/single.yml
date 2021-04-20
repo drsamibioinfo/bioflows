@@ -1,0 +1,11 @@
+name: single
+id: single
+type: pipeline
+inputs:
+  - name: input
+    id: input
+    type: string
+steps:
+  - id: solo
+    name: solo
+    command: "mkdir {{output_dir}}/{{input}} && echo {{input}}"

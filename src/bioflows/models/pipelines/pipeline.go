@@ -44,6 +44,10 @@ func (instance *BioPipeline) GetIdentifier() string {
 	return fmt.Sprintf("%s-%s", instance.Name, instance.ID)
 }
 
+func (instance *BioPipeline) SetId(newId string) {
+	instance.ID = newId
+}
+
 func (instance *BioPipeline) Prepare() {
 	//if the tool name is not set, then use the tool ID
 	if len(instance.Name) <= 0 {
