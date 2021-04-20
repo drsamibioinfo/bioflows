@@ -16,6 +16,11 @@ steps:
     loop_var: "vars"
     type: pipeline
     url: "file:///single.yml"
+    inputs:
+      - name: input
+        id: input
+        type: string
+        value: "{{vars_item}}"
   - id: second
     name: second
     depends: first

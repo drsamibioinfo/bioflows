@@ -87,7 +87,7 @@ func (p *DagExecutor) CheckStatus(pipelineId string , step pipelines.BioPipeline
 	section , _ := p.contextManager.GetStateManager().GetStateByID(toolKey)
 	if section != nil {
 		data := section.(map[string]interface{})
-		if _, found := data["status"]; found {
+		if ok, found := data["status"]; found && ok.(bool) && !p.parentPipeline.Loop{
 			status = DONT_RUN
 		}
 	}
@@ -401,6 +401,14 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 								}
 							}
 						}
+						config["status"] = stepTruth
+						config["exitCode"] = 0
+						err = p.contextManager.SaveState(toolKey,config.GetAsMap())
+						if err != nil {
+							fmt.Println(fmt.Sprintf("Received Error: %s",err.Error()))
+							return
+						}
+
 					}else{
 						// The Loop variable contains non-array type data , i.e. it is not an array
 						p.reportFailure(toolKey,config)
@@ -465,7 +473,6 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 				}
 				if loop_elements , ok := config[currentFlow.LoopVar]; ok {
 					if elements, islist := loop_elements.([]interface{}); islist{
-
 						for idx , el := range elements{
 							nestedPipelineExecutor := DagExecutor{}
 							nestedPipelineExecutor.SetContainerConfig(p.containerConfig)
@@ -481,10 +488,15 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 								nestedPipelineExecutor.Log(err.Error())
 							}
 							pipeConfig := nestedPipelineExecutor.GetPipelineOutput()
-
 							err = p.contextManager.SaveState(toolKey,pipeConfig.GetAsMap())
 						}
-
+						config["status"] = true
+						config["exitCode"] = 0
+						err = p.contextManager.SaveState(toolKey,config.GetAsMap())
+						if err != nil {
+							fmt.Println(fmt.Sprintf("Received Error: %s",err.Error()))
+							return
+						}
 					}
 				}
 
