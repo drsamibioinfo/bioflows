@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bioflows/models"
+	"bioflows/models/pipelines"
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -10,8 +10,8 @@ import (
 
 func main(){
 
-	tool := &models.Tool{}
-	tool_in, err := os.Open("/home/snouto/projects/bioflows/scripts/secondpipe.yaml")
+	tool := &pipelines.BioPipeline{}
+	tool_in, err := os.Open("/home/snouto/bioflows/scripts/pip.yml")
 	if err != nil {
 		fmt.Printf("There was an error opening the tool file, %v\n",err)
 		os.Exit(1)

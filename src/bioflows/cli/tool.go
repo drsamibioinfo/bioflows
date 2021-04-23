@@ -9,7 +9,9 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"log"
 	"os"
+	"strings"
 )
 
 func ReadConfig(cfgFile string) (models.FlowConfig,error) {
@@ -24,6 +26,25 @@ func ReadConfig(cfgFile string) (models.FlowConfig,error) {
 	}
 	workflowConfig.Fill(Configuration.ToMap())
 	return workflowConfig,nil
+}
+
+func GetAttachableVolumes(step *pipelines.BioPipeline) ([]models.Parameter, error) {
+	attachable := make(map[string]models.Parameter)
+	//access the inputs of the parent workflow
+	totalParams := make([]models.Parameter,1)
+	totalParams = append(totalParams,step.Inputs...)
+	totalParams = append(totalParams,step.Config...)
+	for _ , param := range totalParams {
+		paramName := strings.ToLower(param.Type)
+		if (paramName == "dir" || paramName == "directory") && param.IsAttachable() {
+			attachable[param.Name] = param
+		}
+	}
+	volumes := make([]models.Parameter,1)
+	for _,v := range attachable {
+		volumes = append(volumes,v)
+	}
+	return volumes , nil
 }
 
 func RunTool(configFile string, toolPath string,workflowId string ,
@@ -63,8 +84,14 @@ func RunTool(configFile string, toolPath string,workflowId string ,
 		return err
 	}
 	workflowConfig.Fill(BfConfig)
+	volumes , err := GetAttachableVolumes(tool)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Received Error: %s",err.Error()))
+		return err
+	}
 	fmt.Println("Executing the current tool.")
 	executor := executors.ToolExecutor{}
+	executor.SetAttachableVolumes(volumes)
 	executor.SetPipelineName(workflowName)
 	workflowConfig[config.WF_INSTANCE_OUTDIR] = outputDir
 	workflowConfig[config.WF_INSTANCE_DATADIR] = dataDir

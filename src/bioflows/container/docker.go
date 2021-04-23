@@ -25,6 +25,13 @@ type DockerManager struct {
 	NetworkingConfig *network.NetworkingConfig
 }
 
+func (d *DockerManager) AddAttachableVolume(volumePath string) {
+	if d.HostConfig == nil {
+		d.HostConfig = &container.HostConfig{}
+	}
+	d.HostConfig.Binds = append(d.HostConfig.Binds,fmt.Sprintf("%s:%s",volumePath))
+}
+
 func (d *DockerManager) SetLogger(logger *log.Logger) {
 	d.logger = logger
 }

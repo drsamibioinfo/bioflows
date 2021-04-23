@@ -331,6 +331,26 @@ func (p *DagExecutor) reportFailure(toolKey string , flowConfig models.FlowConfi
 	return nil
 
 }
+func (p *DagExecutor) getAttachableVolumes(step *pipelines.BioPipeline) ([]models.Parameter,error) {
+	attachable := make(map[string]models.Parameter)
+	//access the inputs of the parent workflow
+	totalParams := make([]models.Parameter,1)
+	totalParams = append(totalParams,p.parentPipeline.Inputs...)
+	totalParams = append(totalParams,p.parentPipeline.Config...)
+	totalParams = append(totalParams,step.Inputs...)
+	totalParams = append(totalParams,step.Config...)
+	for _ , param := range totalParams {
+		paramName := strings.ToLower(param.Type)
+		if (paramName == "dir" || paramName == "directory") && param.IsAttachable() {
+			attachable[param.Name] = param
+		}
+	}
+	volumes := make([]models.Parameter,1)
+	for _,v := range attachable {
+		volumes = append(volumes,v)
+	}
+	return volumes , nil
+}
 func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sync.WaitGroup) {
 	defer wg.Done()
 	currentFlow := vertex.Value.(pipelines.BioPipeline)
@@ -382,6 +402,12 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 							generalConfig[fmt.Sprintf("%s_item",currentFlow.LoopVar)] = el
 							generalConfig[fmt.Sprintf("loop_index")] = idx
 							// Run the given tool
+							volumes , err := p.getAttachableVolumes(&currentFlow)
+							if err != nil {
+								executor.Log(fmt.Sprintf("Received Error : %s",err.Error()))
+								return
+							}
+							executor.SetAttachableVolumes(volumes)
 							toolInstanceFlowConfig , err := executor.Run(toolInstance,generalConfig)
 							if err != nil {
 
@@ -430,6 +456,13 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 				}
 				toolInstance.Prepare()
 				generalConfig := p.prepareConfig(p.parentPipeline,config)
+				// Run the given tool
+				volumes , err := p.getAttachableVolumes(&currentFlow)
+				if err != nil {
+					executor.Log(fmt.Sprintf("Received Error : %s",err.Error()))
+					return
+				}
+				executor.SetAttachableVolumes(volumes)
 				toolInstanceFlowConfig , err := executor.Run(toolInstance,generalConfig)
 				if err != nil {
 

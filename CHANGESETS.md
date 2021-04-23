@@ -16,3 +16,14 @@
  can allow a single Tool "type: tool" to be a loop and execute the tool like
  e.g: bf Tool run ......
 - Now, you can add config parameters to a tool or a pipeline as internal configuration parameters
+
+# 0.0.3a Change Sets
+
+- We have added the ability to mark a parameter in either Inputs and/or Config sections of a pipeline or a tool
+ as attachable "attach: true" in the definition of a parameter in order to attach it to a container in case 
+ the current tool will run in a container (To Be TESTED).
+ 
+- We have added the ability to dynamically create new Steps parameters from within the JS script, 
+You have to either use "self.the_name_of_the_variable = <Some Value> " or you can use it as
+
+self.Add("variableName","<Variable Value>")

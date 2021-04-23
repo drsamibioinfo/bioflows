@@ -19,16 +19,17 @@ import (
 )
 
 type ToolExecutor struct {
-	ToolInstance     *models.ToolInstance
-	ContainerManager *virtualization.VirtualizationManager
-	toolLogger       *log.Logger
-	flowConfig       models.FlowConfig
-	exprManager      *expr.ExprManager
-	pipelineName     string
-	dockerManager    *dockcontainer.DockerManager
-	hostOutputDir    string
-	hostDataDir      string
+	ToolInstance            *models.ToolInstance
+	ContainerManager        *virtualization.VirtualizationManager
+	toolLogger              *log.Logger
+	flowConfig              models.FlowConfig
+	exprManager             *expr.ExprManager
+	pipelineName            string
+	dockerManager           *dockcontainer.DockerManager
+	hostOutputDir           string
+	hostDataDir             string
 	pipelineContainerConfig *models.ContainerConfig
+	AttachableVolumes []models.Parameter
 }
 func (e *ToolExecutor) SetContainerConfiguration(containerConfig *models.ContainerConfig){
 	e.pipelineContainerConfig = containerConfig
@@ -229,6 +230,7 @@ func (e *ToolExecutor) CreateOutputFile(name string,ext string) (string,error) {
 func (e *ToolExecutor) init(flowConfig models.FlowConfig) error {
 	e.ContainerManager = nil
 	e.flowConfig = flowConfig
+	e.AttachableVolumes = make([]models.Parameter,1)
 	e.hostDataDir = fmt.Sprintf("%v",e.flowConfig[config.WF_INSTANCE_DATADIR])
 	e.hostOutputDir = fmt.Sprintf("%v",e.flowConfig[config.WF_INSTANCE_OUTDIR])
 	e.exprManager = &expr.ExprManager{}
@@ -512,6 +514,18 @@ func (e *ToolExecutor) executeLoop()  (models.FlowConfig,error) {
 	return toolConfig,toolErr
 
 }
+// This function will add attachable directory parameters which are going to be attached as volumes
+//to the running container
+func (e *ToolExecutor) addAttachableVolume(parameter *models.Parameter){
+	if e.dockerManager != nil {
+		if volumePath , ok := parameter.Value.(string); ok {
+			e.dockerManager.AddAttachableVolume(volumePath)
+		}
+	}
+}
+func (e *ToolExecutor) SetAttachableVolumes(volumes []models.Parameter) {
+	e.AttachableVolumes = append(e.AttachableVolumes,volumes...)
+}
 func (e *ToolExecutor) Run(t *models.ToolInstance, workflowConfig models.FlowConfig) (models.FlowConfig,error) {
 	e.ToolInstance = t
 	err := e.init(workflowConfig)
@@ -519,6 +533,11 @@ func (e *ToolExecutor) Run(t *models.ToolInstance, workflowConfig models.FlowCon
 		return nil,err
 	}
 	fmt.Println(fmt.Sprintf("Running (%s) Tool...",t.Name))
+	if e.AttachableVolumes != nil {
+		for _ , volume := range e.AttachableVolumes {
+			e.addAttachableVolume(&volume)
+		}
+	}
 	return e.execute()
 }
 

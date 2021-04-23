@@ -16,6 +16,10 @@ func (f *FlowConfig) Fill(config map[string]interface{})  {
 
 }
 
+func (f *FlowConfig) Add(name string , val interface{}) {
+	(*f)[name] = val
+}
+
 func (f *FlowConfig) GetAsMap() map[string]interface{}{
 	newMap := make(map[string]interface{})
 	for k , v := range *f {
@@ -48,6 +52,10 @@ type Parameter struct {
 	Type        string      `json:"type,omitempty" yaml:"type,omitempty"`
 	Description string      `json:"description,omitempty" yaml:"description,omitempty"`
 	Value       interface{} `json:"value,omitempty" yaml:"value,omitempty"`
+	Attachable *bool 		`json:"attach,omitempty" yaml:"attach,omitempty"`
+}
+func (p *Parameter) IsAttachable() bool {
+	return *p.Attachable
 }
 
 func (p *Parameter) GetParamValue() string {
@@ -66,6 +74,9 @@ func (p *Parameter) Fill(t *Parameter) error {
 	}
 	if t.Type != "" {
 		p.Type = t.Type
+	}
+	if t.Attachable != nil {
+		*p.Attachable = *t.Attachable
 	}
 	return nil
 }

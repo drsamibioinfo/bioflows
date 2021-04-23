@@ -13,9 +13,9 @@ import (
 
 type ScriptManager interface {
 	Prepare(toolInstance *models.ToolInstance)
-	RunBefore(script models.Script,config map[string]interface{}) (error)
-	RunAfter(script models.Script,config map[string]interface{}) error
-	getCode(script models.Script , config map[string]interface{}) (string , error)
+	RunBefore(script models.Script,config models.FlowConfig) (error)
+	RunAfter(script models.Script,config models.FlowConfig) error
+	getCode(script models.Script , config models.FlowConfig) (string , error)
 }
 
 type JSScriptManager struct {
@@ -27,7 +27,7 @@ func (manager *JSScriptManager) Prepare(toolInstance *models.ToolInstance) {
 	manager.toolInstance = toolInstance
 
 }
-func (manager *JSScriptManager) getCode(script models.Script , config map[string]interface{}) (string,error) {
+func (manager *JSScriptManager) getCode(script models.Script , config models.FlowConfig) (string,error) {
 	code := script.Code.ToString()
 	if len(code) > 2 {
 		return code, nil
@@ -65,7 +65,7 @@ func (manager *JSScriptManager) getCode(script models.Script , config map[string
 	}
 	return "" , errors.New("invalid script directive. no code found")
 }
-func (manager *JSScriptManager) RunBefore(script models.Script,config map[string]interface{}) error {
+func (manager *JSScriptManager) RunBefore(script models.Script,config models.FlowConfig) error {
 	vm := goja.New()
 	if manager.toolInstance != nil {
 		config["command"] = manager.toolInstance.Command.ToString()
@@ -87,6 +87,6 @@ func (manager *JSScriptManager) RunBefore(script models.Script,config map[string
 	return nil
 }
 
-func (manager *JSScriptManager) RunAfter(script models.Script,config map[string]interface{}) error {
+func (manager *JSScriptManager) RunAfter(script models.Script,config models.FlowConfig) error {
 	return manager.RunBefore(script,config)
 }
