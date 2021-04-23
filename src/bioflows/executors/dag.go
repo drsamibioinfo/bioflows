@@ -84,9 +84,10 @@ func (p *DagExecutor) Clean() bool {
 func (p *DagExecutor) CheckStatus(pipelineId string , step pipelines.BioPipeline) int {
 	status := SHOULD_RUN
 	toolKey := resolver.ResolveToolKey(step.ID,pipelineId)
-	section , _ := p.contextManager.GetStateManager().GetStateByID(toolKey)
-	if section != nil {
-		data := section.(map[string]interface{})
+	toolData, _ := p.contextManager.GetStateManager().GetStateByID(toolKey)
+	// If toolData exists, this means the tool has already run before
+	if toolData != nil {
+		data := toolData.(map[string]interface{})
 		if ok, found := data["status"]; found && ok.(bool) && !p.parentPipeline.Loop{
 			status = DONT_RUN
 		}
