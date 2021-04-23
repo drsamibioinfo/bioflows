@@ -3,5 +3,4 @@ io.Print(...anything), this function will take a variadic parameter and will com
 io.ReadFile(fullFilePath), this function will take an absolute file path and it will open and return the contents of that file
 "io.SelectSingle(dir,handle)", this function will take two parameters - the first parameter is a directory path and the second parameter is a substring the function will return a single file in that directory which contains this substring in its name.
 "io.SelectMultiple(dir,handles...)", this function takes a directory to search for files and a second variadic parameter which contains multiple substrings to select files containing those substrings and will return all the files matching those substrings.
-io.ListDir(DirPath), this function takes a directory path and will list all the files in that directory the function returns all files with their absolute paths.
-
+"io.ListDir(DirPath,[Absolute: bool])"," this function takes a directory path and will list all the files in that directory the function returns all file or subdirectory names that exist in the directory, If you want to get full absolute file/subdirectory paths, you should set the second parameter to true"

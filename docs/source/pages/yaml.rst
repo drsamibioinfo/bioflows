@@ -56,7 +56,7 @@ How to define Input Parameters (Inputs)
 ***************************************
 
 Each separate tool or a tool in a bioinformatics pipeline requires some input(s) parameters
-to work on and might or might not produce any output(s). Some Bioflows tools might act as decision steps
+to work with and might or might not produce any output(s). Some Bioflows tools might act as decision steps
 or state modifiers in a pipeline and hence these tools will only require some input(s) from previous step(s)
 and will not produce any output(s). These tools should be shadowed having ``shadow: true`` in their definition.
 
@@ -111,15 +111,15 @@ you have to add a notification directive within the definition of that particula
 which defines an email [to,cc,title and body] , as follows.
 
 .. code-block:: yaml
-
-    to: <The receiver Email Address>
-    cc: <an optional directive for a carbon copy to other recipients>
-    title: the title of the email
-    body: short or long textual description of the email
+    notification:
+        to: <The receiver Email Address>
+        cc: <an optional directive for a carbon copy to other recipients>
+        title: the title of the email
+        body: short or long textual description of the email
 
 
 .. note::
-    Please note, to make the notification feature available, you have to define proper email settings in BioFlows system configuration section of this documentation.
+    Please note, for the notification feature to work properly, you have to define proper email settings in BioFlows system configuration section of this documentation.
 
 
 Capabilities Directive
@@ -134,7 +134,7 @@ of the task specifying how many computing cores and memory in Mega Bytes (``MB``
 .. code-block:: yaml
 
     caps:
-        cpu: 20
+        cpu: 20 # 20 Cores
         memory: 163840 # 160 GB
 
 
@@ -148,8 +148,9 @@ Scripts Directive
 
 In Scientific computing, especially in Bioinformatics, Pipelines are not fixed chain of steps. These analysis steps have
 internal state variables, Input parameters and Output parameters that control the behavior of a given step.
-You can control the execution of a given step based on any of its internal state variables using embedded scripting. In BioFlows, currently, we support a fully compatible ``ECMAScript 6 Javascript Embedded engine`` for writing Javascript code within
-a specific pipeline step to control the task internal state. In the future, we will support ``Lua`` as well as ``Python``.
+You can control the execution of a given step based on any of its internal state variables using embedded scripting.
+In BioFlows, currently, we support a fully compatible ``ECMAScript 6 Javascript Embedded engine`` for writing Javascript code
+within a specific pipeline step to control the task internal state. In the future, we will support ``Lua`` as well as ``Python``.
 
 A script in BioFlows is meant to control these internal state variables including Configuration parameters, Input Parameters
 as well as Output Parameters. Moreover, when you write a script within a bioflow step, you can control when the script will execute,

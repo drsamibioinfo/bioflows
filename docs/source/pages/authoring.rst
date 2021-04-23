@@ -153,9 +153,9 @@ of this tool and a website where other people could visit who are interested to 
     website: http://john.university.com
     version: 1.0.0
     maintainer:
-      -fullname: mohamed ibrahim
-      email: mfawzy.sami@gmail.com
-      username: mfawzy
+      -fullname: Your Name here
+      email: ****@***.com
+      username: Your Username
     outputs:
         - type: file
           name: output_file
@@ -181,6 +181,7 @@ for other steps. the following is an example that demonstrates this functionalit
 .. code-block:: yaml
 
     id: parentcopy
+    type: pipeline
     name: parentcopy
     description: "This is a parent pipeline which calls pipecopy.yaml"
     inputs:
@@ -206,9 +207,14 @@ for other steps. the following is an example that demonstrates this functionalit
 Setting Initial Parameters
 **************************
 
-When you or others would like to run the above **parentcopy** pipeline, the **bf** command line tool should be given a **YAML** file containing all required
-input parameters required for this pipeline to run. the following is an example YAML file which contains all the initial parameters for running the above mentioned
+When you or others would like to run the above **parentcopy** pipeline, the **bf** command line tool should be given either a **YAML** file containing all required
+input parameters required for this pipeline to run **OR** You can safely mention these parameters and their values as
+space separated `K=V` in the command line itself without prefixing them with "--" or "-".
+the following is an example YAML file which contains all the initial parameters for running the above mentioned
 pipeline.
+
+Using external file
+-------------------
 
 .. code-block:: yaml
 
@@ -221,13 +227,20 @@ Now, if you want to run the above pipeline using **bf** command line, you should
 
     $ bf Workflow run --initials=/location/to/initials.yaml --output_dir=/location/to/output/dir --data_dir=/location/to/data/dir  parentcopy.yaml
 
+**OR**
+
+Mentioning parameters as K/V pairs
+----------------------------------
+
+.. code-block:: bash
+
+    $ bf Workflow run --output_dir=/location/to/output/dir --data_dir=/location/to/data/dir  parentcopy.yaml parent_input=/complete/file/path
+
 .. note::
     Please note that the value for parent_input will be replaced by the embedded JS script contained within the pipeline definition file itself.
     Basically, parent_input value will be replaced from **/complete/file/path** from the initials.yaml file
     to **/complete/new/file/path** when the embedded script executes and because that embedded script is instructed to run before any other steps. it will
     modify that input parameter value before any downstream steps contained within this pipeline.
-
-
 
 
 Share Your Tool
@@ -258,13 +271,13 @@ First, we have a published tool somewhere , Remote Tool that exists at: https://
     website: http://john.university.com
     version: 1.0.0
     notification:
-          to: aalhossary@pmail.ntu.edu.sg
+          to: ***@***.com
           title: "List Dir has finished"
           body: "List Dir has finished"
     maintainer:
-      -fullname: mohamed ibrahim
-      email: mfawzy.sami@gmail.com
-      username: mfawzy
+      -fullname: Your name goes here
+      email: ***@***.com
+      username: Your username
     outputs:
       - type: file
         name: output_file
@@ -344,9 +357,9 @@ i.e. We specified `ubuntu` as the container image we would like to use to execut
     website: http://john.university.com
     version: 1.0.0
     maintainer:
-      -fullname: mohamed ibrahim
-      email: mfawzy.sami@gmail.com
-      username: mfawzy
+      -fullname: Your name goes here
+      email: ***@***.com
+      username: Your username
     outputs:
       - type: file
         name: output_file

@@ -1,5 +1,7 @@
 BioFlows Documentation
 ======================
+
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
@@ -10,6 +12,7 @@ BioFlows Documentation
    pages/authoring
    pages/tutorials
    pages/scripting
+   pages/looping
    pages/variables
    pages/commandline
    pages/configuration

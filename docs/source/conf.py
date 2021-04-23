@@ -52,7 +52,7 @@ exclude_patterns = []
 # a list of builtin themes.
 #
 
-html_theme = "glpi"
+html_theme = "local_rtd_theme"
 
 html_theme_path = ['_themes',]
 

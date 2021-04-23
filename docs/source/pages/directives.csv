@@ -1,4 +1,4 @@
-﻿Directive Name,Description
+Directive Name,Description
 Type,"It could be ""tool"" or ""pipeline"". If you are defining an individual tool, you specify ""tool"" otherwise, if you are defining a whole complete pipeline for performing some kind of computational analysis you specify ""pipeline"""
 ID,An internal identifier for the current tool or pipeline that could be used to reference this tool or pipeline internally.
 depends,"Comma Separated List of IDs that the current tool depends on, it is only valid in case of an individual tool."
@@ -16,7 +16,7 @@ shadow,An optional boolean directive (true/false). Which indicates that the curr
 maintainer,An optional Directive which describes the maintainer of the current tool or pipeline. Please look at the maintainer directive section below for more details.
 references,An optional List of References. Each reference contains nested directives which fully defines a reference object. Please look at the reference directive section below for more details.
 inputs,A complex list of directives which defines a list of input files required for the current tool or pipeline to run. Please look at the inputs directive section below for more details.
-config,An Optional List of internal configuration variables that are constant and not to be changed by the person who executes the current tool or pipeline. Please look at the config directive section below for more details.
+config,An Optional List of internal configuration variables that are either constant and/or not to be changed externally by the person who executes the current tool or pipeline but could be changed internally by the pipeline itself through its embedded scripts. Please look at the config directive section below for more details.
 outputs,An optional list of directives that define a set of output parameters from the execution of the given tool or pipeline. These parameters are visible for downstream processing Bioflows tools and/or pipelines to use in a directed acyclic graph manner (DAG).
 command,This is the mandatory linux command line to use for executing the current tool. The command can reference inputs and/or output files as placeholders. Please check The tutorial for more details on how to define a tool or pipeline in order to fully understand how to express a tool command directive.
 deprecated,An optional boolean directive which indicates that the maintainer of this tool has already created another newer tool that supercedes the current one and this one should not be used anymore. Defaults to false.
@@ -24,17 +24,3 @@ steps,A list of other individual tools or nested pipelines to use as step(s) In 
 notification,An optional complex directive which indicates that this tool should notify mentioned person(s) via email with a custom email message in case it has run. Please take a look at how to define this directive in the following sections of this tutorial.
 caps,An optional complex directive which lists some execution constraints or preferences for the current tool or pipeline to meet in order to successfully execute the current tool or pipeline like how many CPU cores required and/or How many GigaBytes of RAM required for the current tool in order to successfully run. Please look at the following sections on how to define a correct caps directive.
 scripts,"An Optional List of embedded scripts to run before or after the current tool execution. Bioflows currently supports Javascript but we will support Lua in the future. The embedded script can modify internal state parameters for the current tool either before or after execution and also contains additional injected code helper libraries that allow manipulation of files, sockets and other data management tasks. Please look at the scripts directive section to fully understand how to embedd those scripts in your tool definition file."
-,
-,
-,
-,
-,
-,
-,
-,
-,
-,
-,
-,
-,
-,

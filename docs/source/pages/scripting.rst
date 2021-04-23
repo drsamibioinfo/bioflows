@@ -63,9 +63,6 @@ For instance, you can have two pre-command execution JS scripts, but you need on
 their execution order by declaring `order:1` in the first script and `order: 2` in the second script.....
 
 
-
-
-
 Helper Functions
 ^^^^^^^^^^^^^^^^
 
