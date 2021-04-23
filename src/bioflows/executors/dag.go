@@ -10,6 +10,7 @@ import (
 	"bioflows/scripts"
 	"errors"
 	"fmt"
+	"github.com/aidarkhanov/nanoid"
 	"github.com/goombaio/dag"
 	"log"
 	"os"
@@ -28,6 +29,28 @@ type DagExecutor struct {
 	scheduler *DagScheduler
 	exprManager *expr.ExprManager
 	rankedList [][]*dag.Vertex
+	basePath string
+	instanceId string
+}
+
+func (p *DagExecutor) init() error {
+	p.basePath = strings.Join([]string{config2.BIOFLOWS_NAME,config2.BIOFLOWS_PIPELINES},"/")
+	instanceId , err := nanoid.New()
+	if err != nil {
+		p.logger.Fatal(fmt.Sprintf("Received Error: %s",err.Error()))
+		return err
+	}
+	p.instanceId = instanceId
+	return nil
+}
+func (p *DagExecutor) GetInstanceId() string {
+	return p.instanceId
+}
+func (p *DagExecutor) GetPipelineKey() string {
+	return strings.Join([]string{p.basePath,p.GetInstanceId(),p.parentPipeline.ID},"/")
+}
+func (p *DagExecutor) SetBasePath(basePath string) {
+	p.basePath = basePath
 }
 func (p *DagExecutor) SetContainerConfig(containerConfig *models.ContainerConfig) {
 	p.containerConfig = containerConfig
@@ -52,7 +75,7 @@ func (p *DagExecutor) GetContext() *managers.ContextManager {
 //This function returns the final result of the current pipeline
 func (p *DagExecutor) GetPipelineOutput() models.FlowConfig {
 	tempConfig := models.FlowConfig{}
-	pipelineKey := resolver.ResolvePipelineKey(p.parentPipeline.ID)
+	pipelineKey := resolver.ResolvePipelineKey(p.GetPipelineKey())
 	pipelineConfig , err := p.GetContext().GetStateManager().GetPipelineState(pipelineKey)
 	if err != nil {
 		fmt.Println(fmt.Sprintf("Unable to fetch Pipeline Configuration for %s",pipelineKey))
@@ -78,7 +101,7 @@ func (p DagExecutor) SetPipelineGeneralConfig(b *pipelines.BioPipeline,originalC
 	}
 }
 func (p *DagExecutor) Clean() bool {
-	return p.contextManager.GetStateManager().RemoveConfigByID(resolver.BIOFLOWS_NAME)
+	return p.contextManager.GetStateManager().RemoveConfigByID(config2.BIOFLOWS_NAME)
 }
 
 func (p *DagExecutor) CheckStatus(pipelineId string , step pipelines.BioPipeline) int {
@@ -88,7 +111,7 @@ func (p *DagExecutor) CheckStatus(pipelineId string , step pipelines.BioPipeline
 	// If toolData exists, this means the tool has already run before
 	if toolData != nil {
 		data := toolData.(map[string]interface{})
-		if ok, found := data["status"]; found && ok.(bool) && !p.parentPipeline.Loop{
+		if ok, found := data["status"]; found && ok.(bool){
 			status = DONT_RUN
 		}
 	}
@@ -119,13 +142,16 @@ func (p *DagExecutor) CheckStatus(pipelineId string , step pipelines.BioPipeline
 }
 
 func (p *DagExecutor) Setup(config models.FlowConfig) error {
-
+	err := p.init()
+	if err != nil {
+		return err
+	}
 	p.scheduler = &DagScheduler{}
 	p.exprManager = &expr.ExprManager{}
 	p.transformations = make([]TransformCall,0)
 	p.contextManager = &managers.ContextManager{}
 	p.planManager = &managers.ExecutionPlanManager{}
-	err := p.contextManager.Setup(config)
+	err = p.contextManager.Setup(config)
 	if err != nil {
 		return err
 	}
@@ -139,7 +165,7 @@ func (p *DagExecutor) createLogFile(config models.FlowConfig) error {
 		"workflow.logs",
 	},"/")
 	p.logger = &log.Logger{}
-	p.logger.SetPrefix(fmt.Sprintf("%v: ",config2.BIOFLOWS_NAME))
+	p.logger.SetPrefix(fmt.Sprintf("%v: ",config2.BIOFLOWS_DISPLAY_NAME))
 	file,  err := os.Create(workflowOutputFile)
 	if err != nil {
 		return err
@@ -221,10 +247,9 @@ func (p *DagExecutor) prepareConfig(b *pipelines.BioPipeline,config models.FlowC
 		tempConfig[k] = v
 	}
 	// Get Parent Pipeline Configuration from KV Store
-	pipelineKey := resolver.ResolvePipelineKey(b.ID)
-	pipelineConfig , err := p.GetContext().GetStateManager().GetPipelineState(pipelineKey)
+	pipelineConfig , err := p.GetContext().GetStateManager().GetPipelineState(p.GetPipelineKey())
 	if err != nil {
-		fmt.Println(fmt.Sprintf("Unable to fetch Pipeline Configuration for %s",pipelineKey))
+		fmt.Println(fmt.Sprintf("Unable to fetch Pipeline Configuration for %s",p.GetPipelineKey()))
 		return tempConfig
 	}
 	tempConfig.Fill(pipelineConfig)
@@ -355,9 +380,9 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 	defer wg.Done()
 	currentFlow := vertex.Value.(pipelines.BioPipeline)
 	PreprocessPipeline(&currentFlow,config,p.transformations...)
-	toolKey := resolver.ResolveToolKey(currentFlow.ID,p.parentPipeline.ID)
+	toolKey := resolver.ResolveToolKey(currentFlow.ID,p.GetPipelineKey())
 	//pipelineKey := resolver.ResolvePipelineKey(p.parentPipeline.ID)
-	status := p.CheckStatus(p.parentPipeline.ID,currentFlow)
+	status := p.CheckStatus(p.GetPipelineKey(),currentFlow)
 	switch status {
 	case SHOULD_RUN:
 		p.copyParentParamsInto(&currentFlow)
@@ -390,6 +415,7 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 						stepTruth := true
 						for idx , el := range elements {
 							executor := ToolExecutor{}
+							executor.SetBasePath(toolKey)
 							executor.SetPipelineName(p.parentPipeline.Name)
 							executor.SetContainerConfiguration(p.containerConfig)
 							toolInstance := &models.ToolInstance{
@@ -421,7 +447,8 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 								}else{
 									toolInstanceFlowConfig["status"] = stepTruth
 								}
-								err = p.contextManager.SaveState(toolKey,toolInstanceFlowConfig.GetAsMap())
+								toolKeyInAloop := executor.GetToolKey()
+								err = p.contextManager.SaveState(toolKeyInAloop,toolInstanceFlowConfig.GetAsMap())
 								if err != nil {
 									fmt.Println(fmt.Sprintf("Received Error: %s",err.Error()))
 									return
@@ -447,6 +474,7 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 			}else {
 				// The current tool is not loop
 				executor := ToolExecutor{}
+				executor.SetBasePath(p.GetPipelineKey())
 				executor.SetPipelineName(p.parentPipeline.Name)
 				executor.SetContainerConfiguration(p.containerConfig)
 				toolInstance := &models.ToolInstance{
@@ -490,6 +518,7 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 				nestedPipelineConfig.Fill(config)
 				nestedPipelineConfig.Fill(pipelineConfig)
 				nestedPipelineExecutor.Setup(nestedPipelineConfig)
+				nestedPipelineExecutor.SetBasePath(toolKey)
 				err := nestedPipelineExecutor.Run(&currentFlow,nestedPipelineConfig)
 				if err != nil {
 
@@ -515,6 +544,7 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 							nestedPipelineConfig.Fill(config)
 							nestedPipelineConfig.Fill(pipelineConfig)
 							nestedPipelineExecutor.Setup(nestedPipelineConfig)
+							nestedPipelineExecutor.SetBasePath(toolKey)
 							nestedPipelineConfig[fmt.Sprintf("%s_item",currentFlow.LoopVar)] = el
 							nestedPipelineConfig[fmt.Sprintf("loop_index")] = idx
 							err := nestedPipelineExecutor.Run(&currentFlow,nestedPipelineConfig)
@@ -522,7 +552,8 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 								nestedPipelineExecutor.Log(err.Error())
 							}
 							pipeConfig := nestedPipelineExecutor.GetPipelineOutput()
-							err = p.contextManager.SaveState(toolKey,pipeConfig.GetAsMap())
+							pipelineKeyInAloop := nestedPipelineExecutor.GetPipelineKey()
+							err = p.contextManager.SaveState(pipelineKeyInAloop,pipeConfig.GetAsMap())
 						}
 						config["status"] = true
 						config["exitCode"] = 0

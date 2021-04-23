@@ -1,14 +1,23 @@
 package config
 
 import (
+	"fmt"
 	"gopkg.in/ini.v1"
 	"os"
-	"fmt"
 )
 
 const BIOFLOWS_ENV = "BIOFLOWS_ENV"
 
-const BIOFLOWS_NAME = "BioFlows"
+const BIOFLOWS_DISPLAY_NAME = "BioFlows"
+
+const (
+	BIOFLOWS_NAME      = "bioflows"
+	BIOFLOWS_META      = "meta"
+	BIOFLOWS_PIPELINES = "pipelines"
+	BIOFLOWS_NODES     = "nodes"
+	BIOFLOWS_LEADER    = "leader"
+)
+
 
 func GetConfig() (*ini.File,error){
 
@@ -42,3 +51,4 @@ func HasKey(section , key string) (result bool , err error){
 	}
 	return cfg.Section(section).HasKey(key) , nil
 }
+

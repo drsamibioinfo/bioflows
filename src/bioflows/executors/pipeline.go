@@ -98,7 +98,7 @@ func (p PipelineExecutor) SetPipelineGeneralConfig(b *pipelines.BioPipeline,orig
 	}
 }
 func (p *PipelineExecutor) Clean() bool {
-	return p.contextManager.GetStateManager().RemoveConfigByID(resolver.BIOFLOWS_NAME)
+	return p.contextManager.GetStateManager().RemoveConfigByID(config2.BIOFLOWS_NAME)
 }
 func (p *PipelineExecutor) Run(b *pipelines.BioPipeline,config models.FlowConfig) error {
 	//Set default pipeline general configuration if exists..
@@ -364,7 +364,7 @@ func (p *PipelineExecutor) createLogFile(config models.FlowConfig) error {
 		"workflow.logs",
 	},"/")
 	p.logger = &log.Logger{}
-	p.logger.SetPrefix(fmt.Sprintf("%v: ",config2.BIOFLOWS_NAME))
+	p.logger.SetPrefix(fmt.Sprintf("%v: ",config2.BIOFLOWS_DISPLAY_NAME))
 	file,  err := os.Create(workflowOutputFile)
 	if err != nil {
 		return err

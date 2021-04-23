@@ -17,11 +17,11 @@ var logger *log.Logger
 func init() {
 
 	logger = &log.Logger{}
-	logger.SetPrefix(config.BIOFLOWS_NAME)
+	logger.SetPrefix(config.BIOFLOWS_DISPLAY_NAME)
 	if  result , _ := config.HasKey(LOGS_SECTION_NAME,LOGS_OUTPUT_DIR); result{
 
 		output_dir , _ := config.GetKeyAsString(LOGS_SECTION_NAME,LOGS_OUTPUT_DIR)
-		output_file , err := os.Create(strings.Join([]string{output_dir,config.BIOFLOWS_NAME},"/"))
+		output_file , err := os.Create(strings.Join([]string{output_dir,config.BIOFLOWS_DISPLAY_NAME},"/"))
 		if err != nil {
 			//fmt.Println("Received Error while initializing the logs : ")
 			//fmt.Println(err.Error())

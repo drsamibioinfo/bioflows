@@ -10,6 +10,7 @@ import (
 	"bioflows/scripts"
 	"bioflows/virtualization"
 	"fmt"
+	"github.com/aidarkhanov/nanoid"
 	"github.com/docker/docker/api/types/container"
 	"log"
 	"net/smtp"
@@ -30,6 +31,17 @@ type ToolExecutor struct {
 	hostDataDir             string
 	pipelineContainerConfig *models.ContainerConfig
 	AttachableVolumes []models.Parameter
+	basePath string
+	instanceId string
+}
+func (t *ToolExecutor) GetInstanceId() string{
+	return t.instanceId
+}
+func (t *ToolExecutor) GetToolKey() string{
+	return strings.Join([]string{t.basePath,t.GetInstanceId()},"/")
+}
+func (t *ToolExecutor) SetBasePath(basePath string) {
+	t.basePath = basePath
 }
 func (e *ToolExecutor) SetContainerConfiguration(containerConfig *models.ContainerConfig){
 	e.pipelineContainerConfig = containerConfig
@@ -229,6 +241,11 @@ func (e *ToolExecutor) CreateOutputFile(name string,ext string) (string,error) {
 
 func (e *ToolExecutor) init(flowConfig models.FlowConfig) error {
 	e.ContainerManager = nil
+	instanceId , err := nanoid.New()
+	if err != nil {
+		return err
+	}
+	e.instanceId = instanceId
 	e.flowConfig = flowConfig
 	e.AttachableVolumes = make([]models.Parameter,1)
 	e.hostDataDir = fmt.Sprintf("%v",e.flowConfig[config.WF_INSTANCE_DATADIR])
@@ -240,7 +257,7 @@ func (e *ToolExecutor) init(flowConfig models.FlowConfig) error {
 		return err
 	}
 	e.toolLogger = &log.Logger{}
-	e.toolLogger.SetPrefix(fmt.Sprintf("%v: ",config.BIOFLOWS_NAME))
+	e.toolLogger.SetPrefix(fmt.Sprintf("%v: ",config.BIOFLOWS_DISPLAY_NAME))
 	file , err := os.Create(logFileName)
 	if err != nil {
 		fmt.Printf("Can't Create Tool (%s) log file %s",e.ToolInstance.Name, logFileName)
