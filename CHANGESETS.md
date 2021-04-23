@@ -24,6 +24,5 @@
  the current tool will run in a container (To Be TESTED).
  
 - We have added the ability to dynamically create new Steps parameters from within the JS script, 
-You have to either use "self.the_name_of_the_variable = <Some Value> " or you can use it as
+You have to use "self.the_name_of_the_variable = <Some Value> ".
 
-self.Add("variableName","<Variable Value>")
