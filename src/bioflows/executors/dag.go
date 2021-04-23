@@ -31,10 +31,15 @@ type DagExecutor struct {
 	rankedList [][]*dag.Vertex
 	basePath string
 	instanceId string
+	finalStatus bool
 }
 
+func (p *DagExecutor) GetFinalStatus() bool {
+	return p.finalStatus
+}
 func (p *DagExecutor) init() error {
 	p.basePath = strings.Join([]string{config2.BIOFLOWS_NAME,config2.BIOFLOWS_PIPELINES},"/")
+	p.finalStatus = true
 	instanceId , err := nanoid.New()
 	if err != nil {
 		p.logger.Fatal(fmt.Sprintf("Received Error: %s",err.Error()))
@@ -73,9 +78,14 @@ func (p *DagExecutor) GetContext() *managers.ContextManager {
 	return p.contextManager
 }
 //This function returns the final result of the current pipeline
-func (p *DagExecutor) GetPipelineOutput() models.FlowConfig {
+func (p *DagExecutor) GetPipelineOutput(pipelineId *string) models.FlowConfig {
 	tempConfig := models.FlowConfig{}
-	pipelineKey := resolver.ResolvePipelineKey(p.GetPipelineKey())
+	pipelineKey := p.GetPipelineKey()
+	if pipelineId != nil {
+		pipelineKey = *pipelineId
+	}else{
+		pipelineKey = resolver.ResolvePipelineKey(pipelineKey)
+	}
 	pipelineConfig , err := p.GetContext().GetStateManager().GetPipelineState(pipelineKey)
 	if err != nil {
 		fmt.Println(fmt.Sprintf("Unable to fetch Pipeline Configuration for %s",pipelineKey))
@@ -457,6 +467,7 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 						}
 						config["status"] = stepTruth
 						config["exitCode"] = 0
+						p.finalStatus = p.finalStatus && stepTruth
 						err = p.contextManager.SaveState(toolKey,config.GetAsMap())
 						if err != nil {
 							fmt.Println(fmt.Sprintf("Received Error: %s",err.Error()))
@@ -466,6 +477,7 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 					}else{
 						// The Loop variable contains non-array type data , i.e. it is not an array
 						p.reportFailure(toolKey,config)
+						p.finalStatus = p.finalStatus && false
 						p.Log(fmt.Sprintf("Failing Tool : %s, The tool has no associated data in the loop variable.",
 							currentFlow.Name))
 						return
@@ -504,6 +516,9 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 						return
 					}
 				}
+				if status, ok := toolInstanceFlowConfig["status"]; ok {
+					p.finalStatus = p.finalStatus && status.(bool)
+				}
 			}
 
 		}else{
@@ -524,7 +539,13 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 
 					nestedPipelineExecutor.Log(err.Error())
 				}
-				pipeConfig := nestedPipelineExecutor.GetPipelineOutput()
+				pipeConfig := nestedPipelineExecutor.GetPipelineOutput(&toolKey)
+				pipeConfig["status"] = nestedPipelineExecutor.GetFinalStatus()
+				if nestedPipelineExecutor.GetFinalStatus() {
+					pipeConfig["exitCode"] = 0
+				}else{
+					pipeConfig["exitCode"] = 1
+				}
 				err = p.contextManager.SaveState(toolKey,pipeConfig.GetAsMap())
 			}else{
 				// It is a nested pipeline and a loop
@@ -551,12 +572,13 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 							if err != nil {
 								nestedPipelineExecutor.Log(err.Error())
 							}
-							pipeConfig := nestedPipelineExecutor.GetPipelineOutput()
+							pipeConfig := nestedPipelineExecutor.GetPipelineOutput(nil)
 							pipelineKeyInAloop := nestedPipelineExecutor.GetPipelineKey()
 							err = p.contextManager.SaveState(pipelineKeyInAloop,pipeConfig.GetAsMap())
 						}
 						config["status"] = true
 						config["exitCode"] = 0
+						p.finalStatus = p.finalStatus && true
 						err = p.contextManager.SaveState(toolKey,config.GetAsMap())
 						if err != nil {
 							fmt.Println(fmt.Sprintf("Received Error: %s",err.Error()))
@@ -573,6 +595,7 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 	case DONT_RUN:
 		fallthrough
 	default:
+		p.finalStatus = false
 		p.Log(fmt.Sprintf("Flow: %s has already run before, deferring....",currentFlow.Name))
 		return
 	}
