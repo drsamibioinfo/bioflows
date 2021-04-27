@@ -55,6 +55,9 @@ type Parameter struct {
 	Attachable *bool 		`json:"attach,omitempty" yaml:"attach,omitempty"`
 }
 func (p *Parameter) IsAttachable() bool {
+	if p.Attachable == nil {
+		return false
+	}
 	return *p.Attachable
 }
 
