@@ -266,8 +266,23 @@ func (p *DagExecutor) prepareConfig(b *pipelines.BioPipeline,config models.FlowC
 	// ***** End: Get Parent Pipeline Configuration from KV Store ********
 	return tempConfig
 }
+func (p *DagExecutor) GetStepOutputDirectory(config models.FlowConfig , currentFlow *pipelines.BioPipeline) (string,error) {
+	self_dir := strings.Join([]string{p.parentPipeline.ID,currentFlow.ID},"_")
+	workflowOutputDir , ok := config[config2.WF_INSTANCE_OUTDIR]
+	if !ok {
+		err := fmt.Errorf("Output_dir configuration parameter is not set. Please set this variable and try again.")
+		return "" , err
+	}
+	return strings.Join([]string{fmt.Sprintf("%v",workflowOutputDir),self_dir},string(os.PathSeparator)) , nil
+}
 func (p *DagExecutor) evaluateParameters(step *pipelines.BioPipeline,config models.FlowConfig) {
 	//Evaluate current Step inputs
+	selfDir , err := p.GetStepOutputDirectory(config,step)
+	if err != nil {
+		return
+	}
+	config["self_dir"] = selfDir
+	config["location"] = selfDir
 	if step.Inputs != nil && len(step.Inputs) > 0 {
 		for _ , param := range step.Inputs {
 			if param.Value == nil {

@@ -64,7 +64,8 @@ func (o *IO) SelectMultiple(call goja.FunctionCall) goja.Value {
 	for _ , file := range foundFiles{
 		for _,  handle := range handles{
 			if strings.Contains(file.Name(),handle){
-				filteredFiles = append(filteredFiles,file.Name())
+				filePath := strings.Join([]string{dir,file.Name()},string(os.PathSeparator))
+				filteredFiles = append(filteredFiles,filePath)
 			}
 		}
 	}
