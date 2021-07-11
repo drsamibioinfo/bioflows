@@ -314,6 +314,12 @@ func (p *DagExecutor) evaluateParameters(step *pipelines.BioPipeline,config mode
 			config[param.Name] = p.exprManager.Render(param.GetParamValue(),config)
 		}
 	}
+	// Adding the current step Config internal parameters
+	if step.Config != nil && len(step.Config) > 0 {
+		for _ , param := range step.Config{
+			config[param.Name] = p.exprManager.Render(param.GetParamValue(),config)
+		}
+	}
 	//Evaluate current Step outputs
 	if step.Outputs != nil && len(step.Outputs) > 0 {
 		for _ , param := range step.Outputs {
