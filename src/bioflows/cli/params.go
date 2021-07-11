@@ -1,6 +1,7 @@
 package cli
 
 import (
+	config2 "bioflows/config"
 	"bioflows/executors"
 	"bioflows/helpers"
 	"bioflows/models"
@@ -11,13 +12,13 @@ import (
 	"github.com/goombaio/dag"
 	"strings"
 )
-func RecursiveProcessing(b *pipelines.BioPipeline) {
+func RecursiveProcessing(b *pipelines.BioPipeline,config models.FlowConfig) {
 	if b.URL == "" && len(b.URL) == 0 && len(b.Steps) <= 0 {
 		return
 	}else{
-		executors.PreprocessPipeline(b,nil,nil)
+		executors.PreprocessPipeline(b,config,nil)
 		for idx , child := range b.Steps {
-			RecursiveProcessing(&child)
+			RecursiveProcessing(&child,config)
 			b.Steps[idx] = child
 		}
 	}
@@ -27,12 +28,21 @@ func RecursiveProcessing(b *pipelines.BioPipeline) {
 func GetRequirementsTableFor(toolPath string) (*simpletable.Table,error){
 	table := simpletable.New()
 	pipeline := &pipelines.BioPipeline{}
+	config := models.FlowConfig{}
 	err := helpers.ReadPipelineFile(pipeline,toolPath)
 	if err != nil {
 		return nil , err
 	}
+	filedetails := &helpers.FileDetails{}
+	err = helpers.GetFileDetails(filedetails,toolPath)
+	if err != nil {
+		return nil , err
+	}
+	config[config2.WF_BF_TOOL_BASEPATH] = filedetails.Base
+	config[config2.WF_BF_TOOL_PATH] = toolPath
 
-	RecursiveProcessing(pipeline)
+
+	RecursiveProcessing(pipeline,config)
 	graph , err := pipelines.CreateGraph(pipeline)
 	if err != nil {
 		return nil , err
