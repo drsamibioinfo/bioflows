@@ -31,6 +31,9 @@ var workflowRunCmd = &cobra.Command{
 		return cli.RunPipeline(cfgFile,toolPath,OutputDir,DataDir, initialsConfig,clean, positionalArgs)
 	},
 	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1{
+			return cmd.Help()
+		}
 		positionalArgs, _ = parseArgs(args[1:])
 		return nil
 	},

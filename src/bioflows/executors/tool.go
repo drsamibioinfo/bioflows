@@ -227,7 +227,7 @@ func (e *ToolExecutor) GetToolOutputDir() (toolConfigKey string,toolDir string,e
 }
 func (e *ToolExecutor) CreateOutputFile(name string,ext string) (string,error) {
 
-	outputFile := strings.Join([]string{e.ToolInstance.Name,name},"_")
+	outputFile := strings.Join([]string{e.ToolInstance.ID,name},"_")
 	outputFile = strings.Join([]string{outputFile,ext},".")
 	_ , toolOutputDir , err := e.GetToolOutputDir()
 	if err != nil {

@@ -32,6 +32,8 @@ type DagExecutor struct {
 	basePath string
 	instanceId string
 	finalStatus bool
+	// this bucket represents all errors that might have been encountered during the execution of the current DagExecutor
+	errors []error
 }
 
 func (p *DagExecutor) GetFinalStatus() bool {
@@ -40,6 +42,7 @@ func (p *DagExecutor) GetFinalStatus() bool {
 func (p *DagExecutor) init() error {
 	p.basePath = strings.Join([]string{config2.BIOFLOWS_NAME,config2.BIOFLOWS_PIPELINES},"/")
 	p.finalStatus = true
+	p.errors = make([]error,1)
 	instanceId , err := nanoid.New()
 	if err != nil {
 		p.logger.Fatal(fmt.Sprintf("Received Error: %s",err.Error()))
@@ -210,7 +213,24 @@ func (p *DagExecutor) Run(b *pipelines.BioPipeline,config models.FlowConfig) err
 	p.parentPipeline = b
 	finalError = p.runLocal(b,config)
 	p.Log(fmt.Sprintf("Workflow: (%s) has finished....",b.Name))
-	return finalError
+	p.addError(finalError)
+	//Finally add all errors
+	return p.GetAllErrors()
+}
+func (p *DagExecutor) GetAllErrors() error {
+	var errString string = ""
+	if len(p.errors) > 0 {
+		for _ , err := range p.errors {
+			if err == nil {
+				continue
+			}
+			errString += err.Error() + "\n";
+		}
+	}
+	if len(errString) > 0{
+		return fmt.Errorf(errString)
+	}
+	return nil
 }
 func (p *DagExecutor) runLocal(b *pipelines.BioPipeline, config models.FlowConfig) error {
 	graph , err := pipelines.CreateGraph(b)
@@ -441,7 +461,7 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 						for idx , el := range elements {
 							executor := ToolExecutor{}
 							executor.SetBasePath(toolKey)
-							executor.SetPipelineName(p.parentPipeline.Name)
+							executor.SetPipelineName(p.parentPipeline.ID)
 							executor.SetContainerConfiguration(p.containerConfig)
 							toolInstance := &models.ToolInstance{
 								WorkflowID: p.parentPipeline.ID,
@@ -497,12 +517,14 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 							currentFlow.Name))
 						return
 					}
+				}else{
+					p.addError(fmt.Errorf("Loop Variable is not defined: %v",currentFlow.LoopVar))
 				}
 			}else {
 				// The current tool is not loop
 				executor := ToolExecutor{}
 				executor.SetBasePath(p.GetPipelineKey())
-				executor.SetPipelineName(p.parentPipeline.Name)
+				executor.SetPipelineName(p.parentPipeline.ID)
 				executor.SetContainerConfiguration(p.containerConfig)
 				toolInstance := &models.ToolInstance{
 					WorkflowID: p.parentPipeline.ID,
@@ -614,6 +636,10 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 		p.Log(fmt.Sprintf("Flow: %s has already run before, deferring....",currentFlow.Name))
 		return
 	}
+}
+
+func (p *DagExecutor) addError(err error) {
+	p.errors = append(p.errors,err)
 }
 
 
