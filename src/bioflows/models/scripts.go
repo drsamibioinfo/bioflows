@@ -13,7 +13,12 @@ type Script struct {
 	Order int `json:"order,omitempty" yaml:"order,omitempty"`
 	After bool `json:"after,omitempty" yaml:"after,omitempty"`
 	Before bool `json:"before,omitempty" yaml:"before,omitempty"`
+	InLoop bool `json:"inloop,omitempty" yaml:"inloop,omitempty"`
 
+}
+
+func (s Script) IsInLoop() bool {
+	return s.InLoop
 }
 
 func (s Script) IsBefore() bool {

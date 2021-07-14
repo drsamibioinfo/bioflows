@@ -358,7 +358,7 @@ func (p *DagExecutor) executeBeforeScripts(step *pipelines.BioPipeline , config 
 		default:
 			scriptManager = &scripts.JSScriptManager{}
 		}
-		err := scriptManager.RunBefore(beforeScript,config)
+		err := scriptManager.RunScript(beforeScript,config)
 
 		if err != nil {
 			return err
@@ -427,6 +427,16 @@ func (p *DagExecutor) getAttachableVolumes(step *pipelines.BioPipeline) ([]model
 	}
 	return volumes , nil
 }
+func (p *DagExecutor) runInloopScripts(InLineScripts []models.Script,config models.FlowConfig) {
+
+	sort.Slice(InLineScripts, func(i, j int) bool {
+		return InLineScripts[i].Order < InLineScripts[j].Order
+	})
+	var scriptManager *scripts.JSScriptManager = new(scripts.JSScriptManager)
+	for _ , script := range InLineScripts {
+		_ = scriptManager.RunScript(script,config)
+	}
+}
 func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sync.WaitGroup) {
 	defer wg.Done()
 	currentFlow := vertex.Value.(pipelines.BioPipeline)
@@ -478,13 +488,18 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 							generalConfig := p.prepareConfig(p.parentPipeline,config)
 							generalConfig[fmt.Sprintf("%s_item",currentFlow.LoopVar)] = el
 							generalConfig[fmt.Sprintf("loop_index")] = idx
-							// Run the given tool
+							// RunScript the given tool
 							volumes , err := p.getAttachableVolumes(&currentFlow)
 							if err != nil {
 								executor.Log(fmt.Sprintf("Received Error : %s",err.Error()))
 								return
 							}
 							executor.SetAttachableVolumes(volumes)
+							// Run InLoop Scripts first
+							inlineScripts := currentFlow.GetInLoopScripts()
+							if len(inlineScripts) > 0{
+								p.runInloopScripts(inlineScripts,generalConfig)
+							}
 							toolInstanceFlowConfig , err := executor.Run(toolInstance,generalConfig)
 							if err != nil {
 
@@ -538,8 +553,9 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 					Tool:currentFlow.ToTool(),
 				}
 				toolInstance.Prepare()
+
 				generalConfig := p.prepareConfig(p.parentPipeline,config)
-				// Run the given tool
+				// RunScript the given tool
 				volumes , err := p.getAttachableVolumes(&currentFlow)
 				if err != nil {
 					executor.Log(fmt.Sprintf("Received Error : %s",err.Error()))
@@ -611,6 +627,10 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 							nestedPipelineExecutor.SetBasePath(toolKey)
 							nestedPipelineConfig[fmt.Sprintf("%s_item",currentFlow.LoopVar)] = el
 							nestedPipelineConfig[fmt.Sprintf("loop_index")] = idx
+							inlineScripts := currentFlow.GetInLoopScripts()
+							if len(inlineScripts) > 0{
+								p.runInloopScripts(inlineScripts,nestedPipelineConfig)
+							}
 							err := nestedPipelineExecutor.Run(&currentFlow,nestedPipelineConfig)
 							if err != nil {
 								nestedPipelineExecutor.Log(err.Error())

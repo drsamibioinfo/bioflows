@@ -131,13 +131,6 @@ func (e *ToolExecutor) prepareParameters() models.FlowConfig {
 			flowConfig[k] = v
 		}
 	}
-
-	//Copy all flow configs at the workflow level into the current tool flowconfig , in order to override any initials given
-	if len(e.flowConfig) > 0 {
-		for k,v := range e.flowConfig{
-			flowConfig[k] = v
-		}
-	}
 	e.addImplicitVariables(&flowConfig)
 	return flowConfig
 }
@@ -173,7 +166,7 @@ func (e *ToolExecutor) executeBeforeScripts() (map[string]interface{},error) {
 			scriptManager = &scripts.JSScriptManager{}
 			scriptManager.Prepare(e.ToolInstance)
 		}
-		err := scriptManager.RunBefore(beforeScript,configuration)
+		err := scriptManager.RunScript(beforeScript,configuration)
 		if err != nil {
 			return configuration , err
 		}
@@ -315,7 +308,7 @@ func (e *ToolExecutor) execute() (models.FlowConfig,error) {
 	}else{
 		tempContainerConfig = e.pipelineContainerConfig
 	}
-	e.Log(fmt.Sprintf("Run Command : %s",toolCommand))
+	e.Log(fmt.Sprintf("RunScript Command : %s",toolCommand))
 	if e.isDockerized() {
 		var imageURL string
 		if tempContainerConfig == nil {
@@ -449,7 +442,7 @@ func (e *ToolExecutor) executeLoop()  (models.FlowConfig,error) {
 				}else{
 					tempContainerConfig = e.pipelineContainerConfig
 				}
-				e.Log(fmt.Sprintf("Run Command : %s",toolCommand))
+				e.Log(fmt.Sprintf("RunScript Command : %s",toolCommand))
 				if e.isDockerized() {
 					var imageURL string
 					if tempContainerConfig == nil {
@@ -544,6 +537,7 @@ func (e *ToolExecutor) SetAttachableVolumes(volumes []models.Parameter) {
 	e.AttachableVolumes = append(e.AttachableVolumes,volumes...)
 }
 func (e *ToolExecutor) Run(t *models.ToolInstance, workflowConfig models.FlowConfig) (models.FlowConfig,error) {
+
 	e.ToolInstance = t
 	err := e.init(workflowConfig)
 	if err != nil {

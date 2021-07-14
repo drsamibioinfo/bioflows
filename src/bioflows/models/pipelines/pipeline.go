@@ -57,6 +57,17 @@ func (instance *BioPipeline) Prepare() {
 	instance.Name = instance.Name
 }
 
+func (instance BioPipeline) GetInLoopScripts() []models.Script {
+	scripts := make([]models.Script,1)
+	for _ , script := range instance.Scripts {
+		if(script.IsInLoop()){
+			scripts = append(scripts,script)
+		}
+	}
+	return scripts
+
+}
+
 func (p BioPipeline) ToTool() *models.Tool {
 	t := &models.Tool{}
 	t.Type = p.Type
