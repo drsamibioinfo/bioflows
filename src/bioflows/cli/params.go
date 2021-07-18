@@ -71,7 +71,10 @@ func GetRequirementsTableFor(toolPath string) (*simpletable.Table,error){
 		},
 	}
 	TotalInputs := make([]models.Parameter,0)
-	for index , parent := range successors {
+	if len(pipeline.Inputs) > 0 {
+		TotalInputs = append(TotalInputs,pipeline.Inputs...)
+	}
+	for _ , parent := range successors {
 		parentPipeline := parent.Value.(pipelines.BioPipeline)
 
 		if strings.EqualFold(strings.ToLower(parentPipeline.Type),"pipeline") && len(parentPipeline.Steps) > 0 {
@@ -91,14 +94,14 @@ func GetRequirementsTableFor(toolPath string) (*simpletable.Table,error){
 		}else{
 			TotalInputs = append(TotalInputs,parentPipeline.Inputs...)
 		}
-		for _ , param := range TotalInputs {
-			r := []*simpletable.Cell {
-				{Align: simpletable.AlignCenter,Text: fmt.Sprintf("%d",index+1)},
-				{Align: simpletable.AlignCenter,Text: fmt.Sprintf("%s",param.Name)},
-				{Align: simpletable.AlignCenter,Text: fmt.Sprintf("%s",param.GetDescription())},
-			}
-			table.Body.Cells = append(table.Body.Cells,r)
+	}
+	for index , param := range TotalInputs {
+		r := []*simpletable.Cell {
+			{Align: simpletable.AlignCenter,Text: fmt.Sprintf("%d",index+1)},
+			{Align: simpletable.AlignCenter,Text: fmt.Sprintf("%s",param.Name)},
+			{Align: simpletable.AlignCenter,Text: fmt.Sprintf("%s",param.GetDescription())},
 		}
+		table.Body.Cells = append(table.Body.Cells,r)
 	}
 
 	return table , nil
