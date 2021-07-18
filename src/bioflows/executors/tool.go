@@ -33,6 +33,7 @@ type ToolExecutor struct {
 	AttachableVolumes []models.Parameter
 	basePath string
 	instanceId string
+	explain bool
 }
 func (t *ToolExecutor) GetInstanceId() string{
 	return t.instanceId
@@ -232,6 +233,10 @@ func (e *ToolExecutor) CreateOutputFile(name string,ext string) (string,error) {
 
 }
 
+func (e *ToolExecutor) SetExplain(explain bool){
+	e.explain = explain
+}
+
 func (e *ToolExecutor) init(flowConfig models.FlowConfig) error {
 	e.ContainerManager = nil
 	instanceId , err := nanoid.New()
@@ -309,6 +314,10 @@ func (e *ToolExecutor) execute() (models.FlowConfig,error) {
 		tempContainerConfig = e.pipelineContainerConfig
 	}
 	e.Log(fmt.Sprintf("RunScript Command : %s",toolCommand))
+	if e.explain{
+		fmt.Printf("Explain => Tool Name: %s , Command: %s\n",e.ToolInstance.ID,toolCommand)
+		goto AfterScriptsAndExit
+	}
 	if e.isDockerized() {
 		var imageURL string
 		if tempContainerConfig == nil {
@@ -323,6 +332,7 @@ func (e *ToolExecutor) execute() (models.FlowConfig,error) {
 		}
 		//Log the output
 		e.Log(output)
+
 		out,outErr,toolErr := e.dockerManager.RunContainer(toolConfigKey,e.ToolInstance.ImageId,[]string{
 			"bash",
 			"-c",
@@ -348,6 +358,7 @@ func (e *ToolExecutor) execute() (models.FlowConfig,error) {
 		outputBytes = executor.GetOutput().Bytes()
 		errorBytes = executor.GetError().Bytes()
 	}
+	AfterScriptsAndExit:
 	toolConfig , err = e.executeAfterScripts(toolConfig)
 	toolConfig["exitCode"] = exitCode
 	if toolErr != nil {
@@ -443,6 +454,10 @@ func (e *ToolExecutor) executeLoop()  (models.FlowConfig,error) {
 					tempContainerConfig = e.pipelineContainerConfig
 				}
 				e.Log(fmt.Sprintf("RunScript Command : %s",toolCommand))
+				if e.explain {
+					fmt.Printf("Explain => Tool Name: %s , Command: %s\n",e.ToolInstance.ID,toolCommand)
+					goto AfterScriptsAndExit
+				}
 				if e.isDockerized() {
 					var imageURL string
 					if tempContainerConfig == nil {
@@ -486,6 +501,7 @@ func (e *ToolExecutor) executeLoop()  (models.FlowConfig,error) {
 			}
 		}
 	}
+	AfterScriptsAndExit:
 	toolConfig , err = e.executeAfterScripts(toolConfig)
 	toolConfig["exitCode"] = exitCode
 	if toolErr != nil {

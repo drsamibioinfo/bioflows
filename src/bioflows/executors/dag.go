@@ -32,12 +32,16 @@ type DagExecutor struct {
 	basePath string
 	instanceId string
 	finalStatus bool
+	explain bool
 	// this bucket represents all errors that might have been encountered during the execution of the current DagExecutor
 	errors []error
 }
 
 func (p *DagExecutor) GetFinalStatus() bool {
 	return p.finalStatus
+}
+func (p *DagExecutor) SetExplain(explain bool) {
+	p.explain = explain
 }
 func (p *DagExecutor) init() error {
 	p.basePath = strings.Join([]string{config2.BIOFLOWS_NAME,config2.BIOFLOWS_PIPELINES},"/")
@@ -500,6 +504,7 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 							if len(inlineScripts) > 0{
 								p.runInloopScripts(inlineScripts,generalConfig)
 							}
+							executor.SetExplain(p.explain)
 							toolInstanceFlowConfig , err := executor.Run(toolInstance,generalConfig)
 							if err != nil {
 
@@ -562,6 +567,7 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 					return
 				}
 				executor.SetAttachableVolumes(volumes)
+				executor.SetExplain(p.explain)
 				toolInstanceFlowConfig , err := executor.Run(toolInstance,generalConfig)
 				if err != nil {
 
