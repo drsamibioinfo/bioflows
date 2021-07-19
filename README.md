@@ -6,6 +6,9 @@
 
 BioFlows Distributed Pipeline Engine
 ====================================
+
+[![Join the chat at https://gitter.im/bioflowz/community](https://badges.gitter.im/bioflowz/community.svg)](https://gitter.im/bioflowz/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Distributed Containerized Bioinformatics and Computational Workflows/Pipeline Engine built in Golang
 
 BioFlows is a distributed pipeline framework for expressing , designing and running scalable reproducible and distributed computational bioinformatics workflows in cloud containers.
