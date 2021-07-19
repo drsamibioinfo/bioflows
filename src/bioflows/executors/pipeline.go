@@ -1,11 +1,11 @@
 package executors
 
 import (
-	config2 "bioflows/config"
-	"bioflows/managers"
-	"bioflows/models"
-	"bioflows/models/pipelines"
-	"bioflows/resolver"
+	config2 "github.com/bioflows/src/bioflows/config"
+	"github.com/bioflows/src/bioflows/managers"
+	"github.com/bioflows/src/bioflows/models"
+	"github.com/bioflows/src/bioflows/models/pipelines"
+	"github.com/bioflows/src/bioflows/resolver"
 	"errors"
 	"fmt"
 	"github.com/goombaio/dag"

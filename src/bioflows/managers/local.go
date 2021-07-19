@@ -1,9 +1,9 @@
 package managers
 
 import (
-	"bioflows/context"
-	"bioflows/helpers"
-	"bioflows/models"
+	"github.com/bioflows/src/bioflows/context"
+	"github.com/bioflows/src/bioflows/helpers"
+	"github.com/bioflows/src/bioflows/models"
 	"fmt"
 	"strings"
 )

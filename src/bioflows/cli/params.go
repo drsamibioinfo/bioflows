@@ -1,11 +1,11 @@
 package cli
 
 import (
-	config2 "bioflows/config"
-	"bioflows/executors"
-	"bioflows/helpers"
-	"bioflows/models"
-	"bioflows/models/pipelines"
+	config2 "github.com/bioflows/src/bioflows/config"
+	"github.com/bioflows/src/bioflows/executors"
+	"github.com/bioflows/src/bioflows/helpers"
+	"github.com/bioflows/src/bioflows/models"
+	"github.com/bioflows/src/bioflows/models/pipelines"
 	"errors"
 	"fmt"
 	"github.com/alexeyco/simpletable"

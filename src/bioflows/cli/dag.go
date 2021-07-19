@@ -1,8 +1,8 @@
 package cli
 
 import (
-	"bioflows/helpers"
-	"bioflows/models/pipelines"
+	"github.com/bioflows/src/bioflows/helpers"
+	"github.com/bioflows/src/bioflows/models/pipelines"
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"

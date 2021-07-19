@@ -1,9 +1,9 @@
 package executors
 
 import (
-	"bioflows/helpers"
-	"bioflows/models"
-	"bioflows/models/pipelines"
+	"github.com/bioflows/src/bioflows/helpers"
+	"github.com/bioflows/src/bioflows/models"
+	"github.com/bioflows/src/bioflows/models/pipelines"
 	"strings"
 )
 

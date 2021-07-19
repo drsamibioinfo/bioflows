@@ -1,7 +1,7 @@
 package helpers
 
 import (
-	"bioflows/config"
+	"github.com/bioflows/src/bioflows/config"
 	"fmt"
 	"strings"
 )

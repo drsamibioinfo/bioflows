@@ -1,7 +1,7 @@
 package models
 
 import (
-	"bioflows/helpers/id"
+	"github.com/bioflows/src/bioflows/helpers/id"
 	"strings"
 	"time"
 )

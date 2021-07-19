@@ -1,8 +1,8 @@
 package executors
 
 import (
-	"bioflows/models"
-	"bioflows/models/pipelines"
+	"github.com/bioflows/src/bioflows/models"
+	"github.com/bioflows/src/bioflows/models/pipelines"
 )
 
 var (

@@ -1,10 +1,10 @@
 package engine
 
 import (
-	"bioflows/config"
-	"bioflows/kv"
-	"bioflows/logs"
-	"bioflows/services"
+	"github.com/bioflows/src/bioflows/config"
+	"github.com/bioflows/src/bioflows/kv"
+	"github.com/bioflows/src/bioflows/logs"
+	"github.com/bioflows/src/bioflows/services"
 	"strconv"
 )
 

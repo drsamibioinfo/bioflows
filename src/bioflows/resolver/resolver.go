@@ -1,7 +1,7 @@
 package resolver
 
 import (
-	"bioflows/config"
+	"github.com/bioflows/src/bioflows/config"
 	"strings"
 )
 

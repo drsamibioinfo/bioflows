@@ -1,12 +1,12 @@
 package cli
 
 import (
-	"bioflows/config"
-	"bioflows/executors"
-	"bioflows/helpers"
-	"bioflows/models"
-	"bioflows/models/pipelines"
 	"fmt"
+	"github.com/bioflows/src/bioflows/config"
+	"github.com/bioflows/src/bioflows/executors"
+	"github.com/bioflows/src/bioflows/helpers"
+	"github.com/bioflows/src/bioflows/models"
+	"github.com/bioflows/src/bioflows/models/pipelines"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
