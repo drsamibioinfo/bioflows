@@ -6,7 +6,8 @@ Introduction
 
 Bioflows supports embedded scripting. You can access every tool parameters including inputs and outputs and tool command. The idea behind
 embedding scripts is to internally change the state of the tool parameters depending on code that will be executed in the context of
-each tool either `before` the tool executes or `after` the tool is executed. There is no limit to how many embedded scripts to include in each tool and this depends on the author of each tool. You can
+each tool either `before` the tool executes or `after` the tool is executed or runs before each iteration within a loop by setting `inloop` directive to true.
+There is no limit to how many embedded scripts to include in each tool and this depends on the author of each tool. You can
 change the order of their execution by the numeric value you give for `order` directive in each script declaration.
 
 Currently, Bioflows supports Javascript "ECMAScript 6". You can use Javascript to alter the values of the tool parameters according to some conditions.

@@ -13,7 +13,7 @@ import (
 
 type ScriptManager interface {
 	Prepare(toolInstance *models.ToolInstance)
-	RunBefore(script models.Script,config models.FlowConfig) (error)
+	RunScript(script models.Script,config models.FlowConfig) (error)
 	RunAfter(script models.Script,config models.FlowConfig) error
 	getCode(script models.Script , config models.FlowConfig) (string , error)
 }
@@ -65,7 +65,7 @@ func (manager *JSScriptManager) getCode(script models.Script , config models.Flo
 	}
 	return "" , errors.New("invalid script directive. no code found")
 }
-func (manager *JSScriptManager) RunBefore(script models.Script,config models.FlowConfig) error {
+func (manager *JSScriptManager) RunScript(script models.Script,config models.FlowConfig) error {
 	vm := goja.New()
 	if manager.toolInstance != nil {
 		config["command"] = manager.toolInstance.Command.ToString()
@@ -88,5 +88,5 @@ func (manager *JSScriptManager) RunBefore(script models.Script,config models.Flo
 }
 
 func (manager *JSScriptManager) RunAfter(script models.Script,config models.FlowConfig) error {
-	return manager.RunBefore(script,config)
+	return manager.RunScript(script,config)
 }

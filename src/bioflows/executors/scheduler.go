@@ -64,9 +64,12 @@ func (d *DagScheduler) Rank(parentPipeline *pipelines.BioPipeline , pb *dag.DAG)
 
 }
 func (d *DagScheduler) rankVertex(pRank int, node *dag.Vertex) {
+	currentNodeName := resolver.ResolveToolKey(node.ID,d.pipeline.ID)
 	val := d.getValue(node)
 	nodeRank := val + pRank +  node.InDegree()
-	d.rankedNodes[resolver.ResolveToolKey(node.ID,d.pipeline.ID)] = nodeRank
+	if _ , ok := d.rankedNodes[currentNodeName] ; !ok {
+		d.rankedNodes[currentNodeName] = nodeRank
+	}
 	d.nodeNames[resolver.ResolveToolKey(node.ID,d.pipeline.ID)] = node
 	for _ , child := range node.Children.Values() {
 		childNode := child.(*dag.Vertex)

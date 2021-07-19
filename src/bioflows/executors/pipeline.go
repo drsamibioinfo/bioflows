@@ -272,7 +272,7 @@ func (p *PipelineExecutor) executeSingleVertex(b *pipelines.BioPipeline , config
 		}
 		if execStatus {
 			if vertex.Children.Size() > 0 {
-				// Run those children
+				// RunScript those children
 				for _ , child := range vertex.Children.Values() {
 					childFlow := child.(*dag.Vertex)
 					p.waitGroup.Add(1)
@@ -304,7 +304,7 @@ func (p *PipelineExecutor) runLocally(b *pipelines.BioPipeline, config models.Fl
 	}
 	parents := graph.SourceVertices()
 	for _ , parent := range parents{
-		//Run each parent individually.
+		//RunScript each parent individually.
 		p.waitGroup.Add(1)
 		go p.executeSingleVertex(b,config,parent)
 	}

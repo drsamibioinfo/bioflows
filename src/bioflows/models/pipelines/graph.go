@@ -18,6 +18,11 @@ func PreparePipeline(b *BioPipeline,funcCall func (b *BioPipeline) *BioPipeline)
 	return b , nil
 }
 
+func GraphContains(g *dag.DAG, v string) bool {
+	_ , err := g.GetVertex(v)
+	return err == nil
+}
+
 func CreateGraph(b *BioPipeline) (*dag.DAG,error){
 	g := dag.NewDAG()
 	processedSteps := make(map[string]*dag.Vertex)
@@ -32,11 +37,15 @@ func CreateGraph(b *BioPipeline) (*dag.DAG,error){
 			fromNodes := strings.Split(from,",")
 			for _ , fromNode := range fromNodes{
 				currentVertex := dag.NewVertex(step.ID,step)
+				if GraphContains(g,step.ID){
+					currentVertex , _ = g.GetVertex(step.ID)
+				}
 				if parentVertex, ok := processedSteps[fromNode]; !ok {
 					panic(fmt.Errorf("Unknown Bioflows Step mentioned in %s",step.Name))
 				}else{
 					g.AddVertex(currentVertex)
 					g.AddEdge(parentVertex,currentVertex)
+
 					processedSteps[step.ID] = currentVertex
 				}
 			}

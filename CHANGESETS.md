@@ -26,3 +26,5 @@
 - We have added the ability to dynamically create new Steps parameters from within the JS script, 
 You have to use "self.the_name_of_the_variable = <Some Value> ".
 
+- Added the support for InLoop Scripts using `inloop` Directive. Either True or default is False
+
