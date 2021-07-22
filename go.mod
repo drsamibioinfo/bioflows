@@ -2,7 +2,6 @@ module github.com/bioflows
 
 go 1.16
 
-
 require (
 	github.com/aidarkhanov/nanoid v1.0.8
 	github.com/alexeyco/simpletable v1.0.0

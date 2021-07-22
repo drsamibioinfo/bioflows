@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bioflows/helpers/profiling"
+	"github.com/bioflows/src/bioflows/helpers/profiling"
 	"fmt"
 )
 

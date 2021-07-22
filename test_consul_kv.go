@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bioflows/managers"
+	"github.com/bioflows/src/bioflows/managers"
 	"fmt"
 )
 
