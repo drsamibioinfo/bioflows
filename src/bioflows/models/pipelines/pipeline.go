@@ -1,7 +1,7 @@
 package pipelines
 
 import (
-	"bioflows/models"
+	"github.com/bioflows/src/bioflows/models"
 	"encoding/json"
 	"fmt"
 	"strings"

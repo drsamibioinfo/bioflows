@@ -1,16 +1,16 @@
 package executors
 
 import (
-	"bioflows/config"
-	dockcontainer "bioflows/container"
-	"bioflows/expr"
-	"bioflows/helpers"
-	"bioflows/models"
-	"bioflows/process"
-	"bioflows/scripts"
-	"bioflows/virtualization"
 	"fmt"
 	"github.com/aidarkhanov/nanoid"
+	"github.com/bioflows/src/bioflows/config"
+	dockcontainer "github.com/bioflows/src/bioflows/container"
+	"github.com/bioflows/src/bioflows/expr"
+	"github.com/bioflows/src/bioflows/helpers"
+	"github.com/bioflows/src/bioflows/models"
+	"github.com/bioflows/src/bioflows/process"
+	"github.com/bioflows/src/bioflows/scripts"
+	"github.com/bioflows/src/bioflows/virtualization"
 	"github.com/docker/docker/api/types/container"
 	"log"
 	"net/smtp"
@@ -239,10 +239,8 @@ func (e *ToolExecutor) SetExplain(explain bool){
 
 func (e *ToolExecutor) init(flowConfig models.FlowConfig) error {
 	e.ContainerManager = nil
-	instanceId , err := nanoid.New()
-	if err != nil {
-		return err
-	}
+	instanceId  := nanoid.New()
+
 	e.instanceId = instanceId
 	e.flowConfig = flowConfig
 	e.AttachableVolumes = make([]models.Parameter,1)

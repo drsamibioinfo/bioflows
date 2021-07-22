@@ -2,7 +2,7 @@ package logs
 
 import (
 	"log"
-	"bioflows/config"
+	"github.com/bioflows/src/bioflows/config"
 	"os"
 	"strings"
 	"fmt"

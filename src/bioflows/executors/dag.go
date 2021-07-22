@@ -1,16 +1,16 @@
 package executors
 
 import (
-	config2 "bioflows/config"
-	"bioflows/expr"
-	"bioflows/managers"
-	"bioflows/models"
-	"bioflows/models/pipelines"
-	"bioflows/resolver"
-	"bioflows/scripts"
 	"errors"
 	"fmt"
 	"github.com/aidarkhanov/nanoid"
+	config2 "github.com/bioflows/src/bioflows/config"
+	"github.com/bioflows/src/bioflows/expr"
+	"github.com/bioflows/src/bioflows/managers"
+	"github.com/bioflows/src/bioflows/models"
+	"github.com/bioflows/src/bioflows/models/pipelines"
+	"github.com/bioflows/src/bioflows/resolver"
+	"github.com/bioflows/src/bioflows/scripts"
 	"github.com/goombaio/dag"
 	"log"
 	"os"
@@ -47,11 +47,8 @@ func (p *DagExecutor) init() error {
 	p.basePath = strings.Join([]string{config2.BIOFLOWS_NAME,config2.BIOFLOWS_PIPELINES},"/")
 	p.finalStatus = true
 	p.errors = make([]error,1)
-	instanceId , err := nanoid.New()
-	if err != nil {
-		p.logger.Fatal(fmt.Sprintf("Received Error: %s",err.Error()))
-		return err
-	}
+	instanceId := nanoid.New()
+
 	p.instanceId = instanceId
 	return nil
 }

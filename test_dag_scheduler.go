@@ -1,8 +1,8 @@
 package main
 
 import (
-	"bioflows/executors"
-	"bioflows/models/pipelines"
+	"github.com/bioflows/src/bioflows/executors"
+	"github.com/bioflows/src/bioflows/models/pipelines"
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"

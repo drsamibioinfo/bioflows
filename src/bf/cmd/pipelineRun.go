@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"bioflows/cli"
-	"bioflows/models"
+	"github.com/bioflows/src/bioflows/cli"
+	"github.com/bioflows/src/bioflows/models"
 	"errors"
 	"github.com/spf13/cobra"
 	"strings"

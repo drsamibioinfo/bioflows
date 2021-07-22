@@ -1,6 +1,6 @@
 package executors
 
-import "bioflows/models"
+import "github.com/bioflows/src/bioflows/models"
 
 /*
   Base Interface to be implemented by different Tool Executors..

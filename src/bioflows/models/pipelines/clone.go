@@ -1,8 +1,8 @@
 package pipelines
 
 import (
-	"bioflows/expr"
-	"bioflows/models"
+	"github.com/bioflows/src/bioflows/expr"
+	"github.com/bioflows/src/bioflows/models"
 	"strings"
 )
 

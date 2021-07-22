@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bioflows/helpers"
+	"github.com/bioflows/src/bioflows/helpers"
 	"fmt"
 	"path/filepath"
 )

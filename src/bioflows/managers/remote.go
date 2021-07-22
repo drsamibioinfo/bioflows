@@ -1,8 +1,8 @@
 package managers
 
 import (
-	"bioflows/helpers"
-	"bioflows/models"
+	"github.com/bioflows/src/bioflows/helpers"
+	"github.com/bioflows/src/bioflows/models"
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/consul/api"

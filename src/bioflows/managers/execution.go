@@ -1,6 +1,6 @@
 package managers
 
-import "bioflows/models"
+import "github.com/bioflows/src/bioflows/models"
 
 type ExecutionPlanManager struct {
 	contextManager *ContextManager

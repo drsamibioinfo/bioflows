@@ -1,10 +1,10 @@
 package scripts
 
 import (
-	config2 "bioflows/config"
-	"bioflows/helpers"
-	"bioflows/models"
-	"bioflows/scripts/io"
+	config2 "github.com/bioflows/src/bioflows/config"
+	"github.com/bioflows/src/bioflows/helpers"
+	"github.com/bioflows/src/bioflows/models"
+	"github.com/bioflows/src/bioflows/scripts/io"
 	"errors"
 	"github.com/dop251/goja"
 	"io/ioutil"

@@ -16,7 +16,7 @@ limitations under the License.
 package cmd
 
 import (
-	"bioflows/cli"
+	"github.com/bioflows/src/bioflows/cli"
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/ttacon/chalk"

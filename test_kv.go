@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bioflows/kv"
+	"github.com/bioflows/src/bioflows/kv"
 	"fmt"
 	"github.com/hashicorp/consul/api"
 )

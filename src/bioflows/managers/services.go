@@ -1,9 +1,9 @@
 package managers
 
 import (
-	"bioflows/helpers/profiling"
-	"bioflows/models"
-	"bioflows/resolver"
+	"github.com/bioflows/src/bioflows/helpers/profiling"
+	"github.com/bioflows/src/bioflows/models"
+	"github.com/bioflows/src/bioflows/resolver"
 	"fmt"
 	"github.com/hashicorp/consul/api"
 	"net"

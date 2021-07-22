@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"bioflows/scripts/io"
+	"github.com/bioflows/src/bioflows/scripts/io"
 	"github.com/dop251/goja"
 
 )
