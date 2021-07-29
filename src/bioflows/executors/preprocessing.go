@@ -1,6 +1,7 @@
 package executors
 
 import (
+	config2 "github.com/bioflows/src/bioflows/config"
 	"github.com/bioflows/src/bioflows/helpers"
 	"github.com/bioflows/src/bioflows/models"
 	"github.com/bioflows/src/bioflows/models/pipelines"
@@ -24,7 +25,7 @@ var UseUrl TransformCall = func (b *pipelines.BioPipeline,config models.FlowConf
 			if err != nil {
 				return err
 			}
-			currPath := strings.Join([]string{config["bf_tool_basepath"].(string),fileDetails.FileName},"")
+			currPath := strings.Join([]string{config[config2.WF_BF_TOOL_BASEPATH].(string),fileDetails.FileName},"")
 			err = helpers.GetFileDetails(fileDetails,currPath)
 			if err != nil {
 				return err
