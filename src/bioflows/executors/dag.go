@@ -6,13 +6,14 @@ import (
 	"github.com/aidarkhanov/nanoid"
 	config2 "github.com/bioflows/src/bioflows/config"
 	"github.com/bioflows/src/bioflows/expr"
+	"github.com/bioflows/src/bioflows/logs"
 	"github.com/bioflows/src/bioflows/managers"
 	"github.com/bioflows/src/bioflows/models"
 	"github.com/bioflows/src/bioflows/models/pipelines"
 	"github.com/bioflows/src/bioflows/resolver"
 	"github.com/bioflows/src/bioflows/scripts"
 	"github.com/goombaio/dag"
-	"log"
+	"github.com/mbndr/logo"
 	"os"
 	"sort"
 	"strings"
@@ -24,7 +25,7 @@ type DagExecutor struct {
 	planManager *managers.ExecutionPlanManager
 	transformations []TransformCall
 	parentPipeline *pipelines.BioPipeline
-	logger *log.Logger
+	logger *logo.Logger
 	containerConfig *models.ContainerConfig
 	scheduler *DagScheduler
 	exprManager *expr.ExprManager
@@ -92,7 +93,7 @@ func (p *DagExecutor) GetPipelineOutput(pipelineId *string) models.FlowConfig {
 	}
 	pipelineConfig , err := p.GetContext().GetStateManager().GetPipelineState(pipelineKey)
 	if err != nil {
-		fmt.Println(fmt.Sprintf("Unable to fetch Pipeline Configuration for %s",pipelineKey))
+		p.Log(fmt.Sprintf("Unable to fetch Pipeline Configuration for %s",pipelineKey))
 		return tempConfig
 	}
 	tempConfig.Fill(pipelineConfig)
@@ -178,19 +179,23 @@ func (p *DagExecutor) createLogFile(config models.FlowConfig) error {
 		fmt.Sprintf("%v",config[config2.WF_INSTANCE_OUTDIR]),
 		"workflow.logs",
 	},"/")
-	p.logger = &log.Logger{}
+	p.logger = logs.NewLogger(config)
 	p.logger.SetPrefix(fmt.Sprintf("%v: ",config2.BIOFLOWS_DISPLAY_NAME))
 	file,  err := os.Create(workflowOutputFile)
 	if err != nil {
 		return err
 	}
-	p.logger.SetOutput(file)
+	rec := logo.NewReceiver(file,config2.BIOFLOWS_DISPLAY_NAME)
+	if p.parentPipeline != nil {
+		rec = logo.NewReceiver(file,p.parentPipeline.ID)
+	}
+	p.logger.Receivers = append(p.logger.Receivers,rec)
 	return nil
 }
 
 func (p *DagExecutor) Log(logs ...interface{}) {
-	p.logger.Println(logs...)
-	fmt.Println(logs...)
+	//p.logger.Println(logs...)
+	p.logger.Info(logs...)
 }
 
 func (p *DagExecutor) Run(b *pipelines.BioPipeline,config models.FlowConfig) error {
@@ -201,7 +206,7 @@ func (p *DagExecutor) Run(b *pipelines.BioPipeline,config models.FlowConfig) err
 			switch r.(type) {
 			case error:
 				finalError = r.(error)
-				fmt.Println(fmt.Sprintf("Error: %s. Aborting.....",finalError.Error()))
+				p.Log(fmt.Sprintf("Error: %s. Aborting.....",finalError.Error()))
 			case string:
 				finalError = errors.New(r.(string))
 			default:
@@ -280,7 +285,7 @@ func (p *DagExecutor) prepareConfig(b *pipelines.BioPipeline,config models.FlowC
 	// Get Parent Pipeline Configuration from KV Store
 	pipelineConfig , err := p.GetContext().GetStateManager().GetPipelineState(p.GetPipelineKey())
 	if err != nil {
-		fmt.Println(fmt.Sprintf("Unable to fetch Pipeline Configuration for %s",p.GetPipelineKey()))
+		p.Log(fmt.Sprintf("Unable to fetch Pipeline Configuration for %s",p.GetPipelineKey()))
 		return tempConfig
 	}
 	tempConfig.Fill(pipelineConfig)
@@ -402,7 +407,7 @@ func (p *DagExecutor) reportFailure(toolKey string , flowConfig models.FlowConfi
 	flowConfig["exitCode"] = 1
 	err := p.contextManager.SaveState(toolKey,flowConfig.GetAsMap())
 	if err != nil {
-		fmt.Println(fmt.Sprintf("Received Error: %s",err.Error()))
+		p.Log(fmt.Sprintf("Received Error: %s",err.Error()))
 		return err
 	}
 	return nil
@@ -518,7 +523,7 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 								toolKeyInAloop := executor.GetToolKey()
 								err = p.contextManager.SaveState(toolKeyInAloop,toolInstanceFlowConfig.GetAsMap())
 								if err != nil {
-									fmt.Println(fmt.Sprintf("Received Error: %s",err.Error()))
+									p.Log(fmt.Sprintf("Received Error: %s",err.Error()))
 									return
 								}
 							}
@@ -528,7 +533,7 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 						p.finalStatus = p.finalStatus && stepTruth
 						err = p.contextManager.SaveState(toolKey,config.GetAsMap())
 						if err != nil {
-							fmt.Println(fmt.Sprintf("Received Error: %s",err.Error()))
+							p.Log(fmt.Sprintf("Received Error: %s",err.Error()))
 							return
 						}
 
@@ -574,7 +579,7 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 
 					err = p.contextManager.SaveState(toolKey,toolInstanceFlowConfig.GetAsMap())
 					if err != nil {
-						fmt.Println(fmt.Sprintf("Received Error: %s",err.Error()))
+						p.Log(fmt.Sprintf("Received Error: %s",err.Error()))
 						return
 					}
 				}
@@ -647,7 +652,7 @@ func (p *DagExecutor) execute(config models.FlowConfig,vertex *dag.Vertex,wg *sy
 						p.finalStatus = p.finalStatus && true
 						err = p.contextManager.SaveState(toolKey,config.GetAsMap())
 						if err != nil {
-							fmt.Println(fmt.Sprintf("Received Error: %s",err.Error()))
+							p.Log(fmt.Sprintf("Received Error: %s",err.Error()))
 							return
 						}
 					}

@@ -1,50 +1,69 @@
 package logs
 
 import (
-	"log"
-	"github.com/bioflows/src/bioflows/config"
+	config2 "github.com/bioflows/src/bioflows/config"
+	"github.com/bioflows/src/bioflows/logs/receivers"
+	"github.com/bioflows/src/bioflows/models"
+	"github.com/mbndr/logo"
 	"os"
 	"strings"
-	"fmt"
 )
+
 const (
 	LOGS_SECTION_NAME = "logs"
 	LOGS_OUTPUT_DIR = "output_dir"
 )
+func getReceiver(receiver models.LoggerReceiver,config models.FlowConfig) *logo.Receiver {
+	var rec *logo.Receiver
+	switch(receiver.Type) {
+	case "kafka":
+		rec = logo.NewReceiver(os.Stdout,config2.BIOFLOWS_NAME)
+	case "es":
+		fallthrough
+	case "elasticsearch":
+		fallthrough
+	case "elastic":
+		es := &receivers.ESReceiver{}
+		es.SetConfig(receiver.ToMap())
+		rec = logo.NewReceiver(es,config2.BIOFLOWS_NAME)
+	default:
+		rec = logo.NewReceiver(os.Stdout,config2.BIOFLOWS_NAME)
+	}
+	return rec
+}
 
-var logger *log.Logger
 
-func init() {
+func NewLogger(config models.FlowConfig) *logo.Logger {
+	logger := logo.NewLogger()
+	logger.Receivers = append(logger.Receivers,logo.NewReceiver(os.Stdout,config2.BIOFLOWS_DISPLAY_NAME),
+		logo.NewReceiver(os.Stderr,config2.BIOFLOWS_DISPLAY_NAME))
 
-	logger = &log.Logger{}
-	logger.SetPrefix(config.BIOFLOWS_DISPLAY_NAME)
-	if  result , _ := config.HasKey(LOGS_SECTION_NAME,LOGS_OUTPUT_DIR); result{
-
-		output_dir , _ := config.GetKeyAsString(LOGS_SECTION_NAME,LOGS_OUTPUT_DIR)
-		output_file , err := os.Create(strings.Join([]string{output_dir,config.BIOFLOWS_DISPLAY_NAME},"/"))
-		if err != nil {
-			//fmt.Println("Received Error while initializing the logs : ")
-			//fmt.Println(err.Error())
-			return
+	if data , ok := config["logging"] ; ok {
+		logging := data.(map[string]interface{})
+		if receivers , ok := logging["receivers"]; ok {
+			for _,receiver := range receivers.([]models.LoggerReceiver){
+				rec := getReceiver(receiver,config)
+				rec.Active = true
+				rec.Color = true
+				switch strings.ToLower(receiver.Level){
+				case "debug":
+					rec.Level = logo.DEBUG
+				case "error":
+				case "erro":
+				case "err":
+					rec.Level = logo.ERROR
+				case "info":
+					rec.Level = logo.INFO
+				case "warn":
+				case "warning":
+				case "warnings":
+					rec.Level = logo.WARN
+				case "fatal":
+					rec.Level = logo.FATAL
+				}
+				logger.Receivers = append(logger.Receivers,rec)
+			}
 		}
-		logger.SetOutput(output_file)
-	}else{
-		logger.SetOutput(os.Stdout)
 	}
-}
-
-func NewLogger(name string , prefix string , location string) (*log.Logger , error) {
-	newLogger := &log.Logger{}
-	newLogger.SetPrefix(prefix)
-	output_file , err := os.Create(strings.Join([]string{location,name},"/"))
-	if err != nil {
-		return nil , err
-	}
-	newLogger.SetOutput(output_file)
-	return newLogger , nil
-}
-
-func WriteLog(log string)  {
-	logger.Println(log)
-	fmt.Println(log)
+	return logger
 }

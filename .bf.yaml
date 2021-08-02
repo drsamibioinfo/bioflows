@@ -12,3 +12,19 @@ cluster:
   address: 127.0.0.1
   port: 8500
   scheme: http
+
+logging:
+  encoding: "console"
+  receivers:
+    - type: "kafka"
+      level: "DEBUG"
+      fields:
+        - host: "127.0.0.1"
+          port: "50003"
+    - type: "es"
+      level: "DEBUG"
+      fields:
+        index: "logs"
+        addresses:
+          - "http://localhost:9200"
+

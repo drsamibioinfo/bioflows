@@ -17,6 +17,9 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/bioflows/src/bioflows/cli"
+	"github.com/bioflows/src/bioflows/logs"
+	"github.com/mbndr/logo"
 	"github.com/spf13/cobra"
 	"os"
 	homedir "github.com/mitchellh/go-homedir"
@@ -29,6 +32,7 @@ var (
 	WorkflowId     string
 	WorkflowName   string
 	initialsConfig string
+	bfLogger *logo.Logger
 )
 
 var cfgFile string
@@ -95,4 +99,10 @@ func initConfig() {
 		cfgFile = viper.ConfigFileUsed()
 		//fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
+	config , err := cli.ReadConfig(cfgFile)
+	if err != nil {
+		fmt.Print(err.Error())
+		return
+	}
+	bfLogger = logs.NewLogger(config)
 }

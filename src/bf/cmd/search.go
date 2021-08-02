@@ -16,22 +16,22 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
 // searchCmd represents the search command
 var searchCmd = &cobra.Command{
 	Use:   "search",
+
 	Short: "This command will search BioFlows Central Repository for a specific tool by its name or any other Textual descriptive sections including References,Description,Discussion and/or Maintainers",
 	Long: `This command will search BioFlows Central Repository for a specific tool by its name or any other Textual descriptive sections including References,Description,Discussion and/or Maintainers`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("search called")
+		bfLogger.Info("search called")
 	},
 }
 
 func init() {
+
 	HubCmd.AddCommand(searchCmd)
 
 	// Here you will define your flags and configuration settings.

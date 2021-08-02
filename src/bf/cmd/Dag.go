@@ -19,7 +19,7 @@ var DagCmd = &cobra.Command {
 		if len(PipelineFile) <= 0 {
 			return fmt.Errorf("BioFlows Dag requires two parameters")
 		}
-		dotString,  err := cli.RenderGraphViz(PipelineFile)
+		dotString,  err := cli.RenderGraphViz(PipelineFile,bfLogger)
 		if err != nil {
 			return err
 		}

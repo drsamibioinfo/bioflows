@@ -5,6 +5,7 @@ import (
 	"github.com/bioflows/src/bioflows/config"
 	"github.com/bioflows/src/bioflows/executors"
 	"github.com/bioflows/src/bioflows/helpers"
+	"github.com/bioflows/src/bioflows/logs"
 	"github.com/bioflows/src/bioflows/models"
 	"github.com/bioflows/src/bioflows/models/pipelines"
 	"gopkg.in/yaml.v2"
@@ -13,31 +14,36 @@ import (
 )
 
 func RunPipeline(configFile,toolPath,outputDir,dataDir, initialsConfig string,clean bool,pconfig models.FlowConfig) error{
-	fmt.Println(fmt.Sprintf("Using Configuration File: %s",configFile))
+	bfcfg , err := ReadConfig(configFile)
+	if err != nil {
+		return err
+	}
+	logger := logs.NewLogger(bfcfg)
+	logger.Info(fmt.Sprintf("Using Configuration File: %s",configFile))
 	pipeline := &pipelines.BioPipeline{}
 	workflowConfig := models.FlowConfig{}
 	fileDetails := &helpers.FileDetails{}
-	err := helpers.GetFileDetails(fileDetails,toolPath)
+	err = helpers.GetFileDetails(fileDetails,toolPath)
 	if err != nil {
-		fmt.Println(err.Error())
+		logger.Error(err.Error())
 		return err
 	}
 	if fileDetails.Local {
 		pipeline_in,err := os.Open(toolPath)
 		if err != nil {
-			fmt.Printf("There was an error opening the tool File: %s",err.Error())
+			logger.Error("There was an error opening the tool File: %s",err.Error())
 			return err
 		}
 		//The tool is being run from a local directory
 
 		mypipeline_contents , err := ioutil.ReadAll(pipeline_in)
 		if err != nil {
-			fmt.Println(fmt.Sprintf("Error: %s",err.Error()))
+			logger.Error(fmt.Sprintf("Error: %s",err.Error()))
 			return err
 		}
 		err = yaml.Unmarshal([]byte(mypipeline_contents),pipeline)
 		if err != nil {
-			fmt.Printf("Error: %s",err.Error())
+			logger.Error("Error: %s",err.Error())
 			return err
 		}
 
@@ -46,7 +52,7 @@ func RunPipeline(configFile,toolPath,outputDir,dataDir, initialsConfig string,cl
 
 		err = helpers.DownloadBioFlowFile(pipeline,toolPath)
 		if err != nil {
-			fmt.Println(fmt.Sprintf("Error Downloading the file: %s",err.Error()))
+			logger.Error(fmt.Sprintf("Error Downloading the file: %s",err.Error()))
 			return err
 		}
 	}
@@ -55,7 +61,7 @@ func RunPipeline(configFile,toolPath,outputDir,dataDir, initialsConfig string,cl
 	workflowConfig[config.WF_BF_TOOL_LOCAL] = fileDetails.Local
 	BfConfig, err := ReadConfig(configFile)
 	if err != nil {
-		fmt.Printf("Error Reading Config: %s",err.Error())
+		logger.Error("Error Reading Config: %s",err.Error())
 		return err
 	}
 	workflowConfig.Fill(BfConfig)
@@ -69,11 +75,11 @@ func RunPipeline(configFile,toolPath,outputDir,dataDir, initialsConfig string,cl
 		}
 		workflowConfig.Fill(initialParams)
 	}
-	fmt.Println(fmt.Sprintf("Executing Workflow: %s",pipeline.Name))
+	logger.Info(fmt.Sprintf("Executing Workflow: %s",pipeline.Name))
 	executor := executors.DagExecutor{}
 	err = executor.Setup(workflowConfig)
 	if err != nil {
-		fmt.Println(fmt.Sprintf("Error: %s",err.Error()))
+		logger.Error(fmt.Sprintf("Error: %s",err.Error()))
 		return err
 	}
 	err =  executor.Run(pipeline,workflowConfig)

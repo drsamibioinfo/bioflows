@@ -3,7 +3,6 @@ package engine
 import (
 	"github.com/bioflows/src/bioflows/config"
 	"github.com/bioflows/src/bioflows/kv"
-	"github.com/bioflows/src/bioflows/logs"
 	"github.com/bioflows/src/bioflows/services"
 	"strconv"
 )
@@ -14,10 +13,11 @@ type BioFlowOrchestrator struct{
 	orchestrator services.Orchestrator
 }
 
+
+
 func (o *BioFlowOrchestrator) Setup() error{
 	orchestrator , err := services.GetDefaultOrchestrator()
 	if err != nil {
-		logs.WriteLog("Can't initialize bioflows orchestrator.")
 		return err
 	}
 	address , err := config.GetKeyAsString(services.SERVICES_SECTION_NAME,"address")
