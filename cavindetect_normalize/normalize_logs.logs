@@ -1,4 +1,4 @@
-bioflows 2021/08/02 23:40:09 [INFO] ▶ Running (normalize) Tool...
-bioflows 2021/08/02 23:40:09 [INFO] ▶ RunScript Command : bcftools filter -r   -Ou | bcftools norm -m -any --check-ref w -f  -Oz > ./cavindetect_normalize/.norm.vcf.gz
-bioflows 2021/08/02 23:40:09 [INFO] ▶ Tool: normalize has finished.
-bioflows 2021/08/02 23:40:09 [INFO] ▶ Received Error : exit status 1
+bioflows 2021/08/02 23:43:44 [INFO] ▶ Running (normalize) Tool...
+bioflows 2021/08/02 23:43:44 [INFO] ▶ RunScript Command : bcftools filter -r   -Ou | bcftools norm -m -any --check-ref w -f  -Oz > ./cavindetect_normalize/.norm.vcf.gz
+bioflows 2021/08/02 23:43:44 [INFO] ▶ Tool: normalize has finished.
+bioflows 2021/08/02 23:43:44 [INFO] ▶ Received Error : exit status 1

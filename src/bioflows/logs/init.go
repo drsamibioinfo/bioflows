@@ -35,8 +35,7 @@ func getReceiver(receiver models.LoggerReceiver,config models.FlowConfig) *logo.
 
 func NewLogger(config models.FlowConfig) *logo.Logger {
 	logger := logo.NewLogger()
-	logger.Receivers = append(logger.Receivers,logo.NewReceiver(os.Stdout,config2.BIOFLOWS_DISPLAY_NAME),
-		logo.NewReceiver(os.Stderr,config2.BIOFLOWS_DISPLAY_NAME))
+	logger.Receivers = append(logger.Receivers,logo.NewReceiver(os.Stdout,config2.BIOFLOWS_DISPLAY_NAME))
 
 	if data , ok := config["logging"] ; ok {
 		logging := data.(map[string]interface{})
