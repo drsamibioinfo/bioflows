@@ -82,13 +82,7 @@ steps:
         code: >
           var contents = io.ReadFile(self.gene_names);
           contents = contents.split("\n");
-          self.genes = [];
-          for(var o=0;o<contents.length;o++){
-            if(contents[o].length > 0){
-              self.genes.push(contents[o]);
-            }
-          }
-          self.genes = self.genes.join(",");
+          self.genes = contents.join(",");
   - id: extractvariants
     name: extractvariants
     description: "This pipeline will extract variants from annotated VCF file using VEP"
