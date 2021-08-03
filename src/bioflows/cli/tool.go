@@ -74,6 +74,7 @@ func RunTool(configFile string, toolPath string,workflowId string ,
 			logger.Error(err.Error())
 			return err
 		}
+		logger.SetPrefix(tool.ID)
 	}else{
 		//Download the tool remotely
 		err := helpers.DownloadBioFlowFile(tool,toolPath)

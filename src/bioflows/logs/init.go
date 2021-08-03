@@ -41,6 +41,9 @@ func NewLogger(config models.FlowConfig) *logo.Logger {
 		logging := data.(map[string]interface{})
 		if receivers , ok := logging["receivers"]; ok {
 			for _,receiver := range receivers.([]models.LoggerReceiver){
+				if !receiver.Active {
+					continue
+				}
 				rec := getReceiver(receiver,config)
 				rec.Active = true
 				rec.Color = true

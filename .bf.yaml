@@ -25,6 +25,4 @@ logging:
       level: "DEBUG"
       fields:
         index: "logs"
-        addresses:
-          - "http://localhost:9200"
-
+        addresses: ["http://localhost:9200"]

@@ -411,6 +411,7 @@ func (e *ToolExecutor) RunToolLoop(t *models.ToolInstance , workflowConfig model
 	if err != nil {
 		return nil , err
 	}
+	e.toolLogger.SetPrefix(t.ID)
 	e.Log(fmt.Sprintf("Tool (%s) is prepared successfully. ",t.Name))
 	return e.executeLoop()
 }
@@ -556,6 +557,7 @@ func (e *ToolExecutor) Run(t *models.ToolInstance, workflowConfig models.FlowCon
 	if err != nil {
 		return nil,err
 	}
+	e.toolLogger.SetPrefix(t.ID)
 	e.Log(fmt.Sprintf("Running (%s) Tool...",t.Name))
 	if e.AttachableVolumes != nil {
 		for _ , volume := range e.AttachableVolumes {

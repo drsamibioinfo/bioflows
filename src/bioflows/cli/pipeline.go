@@ -46,6 +46,7 @@ func RunPipeline(configFile,toolPath,outputDir,dataDir, initialsConfig string,cl
 			logger.Error("Error: %s",err.Error())
 			return err
 		}
+		logger.SetPrefix(pipeline.ID)
 
 	}else{
 		//The mentioned tool is remote

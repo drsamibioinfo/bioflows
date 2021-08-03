@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/bioflows/src/bioflows/cli"
 	"fmt"
+	"github.com/bioflows/src/bioflows/cli"
 	"github.com/spf13/cobra"
 	"github.com/ttacon/chalk"
 )
@@ -16,7 +16,7 @@ var ValidateCmd = &cobra.Command{
     	The file path could be a Local File System Path or a remote URL.
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
-
+		bfLogger.SetPrefix("ValidateTool")
 		if len(args) <= 0 {
 			return cmd.Usage()
 		}

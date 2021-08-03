@@ -10,7 +10,6 @@ require (
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/dop251/goja v0.0.0-20210712101704-705acef95ba3
 	github.com/elastic/go-elasticsearch/v7 v7.13.1
-	github.com/elastic/go-elasticsearch/v8 v8.0.0-20210802153116-3bf20f71870e
 	github.com/goccy/go-graphviz v0.0.9
 	github.com/goombaio/dag v0.0.0-20181006234417-a8874b1f72ff
 	github.com/gorilla/mux v1.8.0 // indirect

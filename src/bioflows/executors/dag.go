@@ -199,6 +199,7 @@ func (p *DagExecutor) Log(logs ...interface{}) {
 }
 
 func (p *DagExecutor) Run(b *pipelines.BioPipeline,config models.FlowConfig) error {
+	p.logger.SetPrefix(b.ID)
 	p.SetPipelineGeneralConfig(b,&config)
 	var finalError error
 	defer func() error{

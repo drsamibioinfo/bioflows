@@ -37,12 +37,14 @@ func (c SystemCluster) ToMap() map[string]interface{}{
 type LoggerReceiver struct {
 	Type string `json:"type,omitempty" yaml:"type,omitempty"`
 	Level string `json:"level,omitempty" yaml:"level,omitempty"`
+	Active bool `json:"active,omitempty" yaml:"active,omitempty"`
 	Fields map[string]interface{} `json:"fields,omitempty" yaml:"fields,omitempty"`
 }
 func (receiver LoggerReceiver) ToMap() map[string]interface{}{
 	m := make(map[string]interface{})
 	m["type"] = receiver.Type
 	m["level"] = receiver.Level
+	m["active"] = receiver.Active
 	m["fields"] = receiver.Fields
 	return m
 }
