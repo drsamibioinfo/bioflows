@@ -25,6 +25,7 @@ func getReceiver(receiver models.LoggerReceiver,config models.FlowConfig) *logo.
 	case "elastic":
 		es := &receivers.ESReceiver{}
 		es.SetConfig(receiver.ToMap())
+		_ = es.Setup()
 		rec = logo.NewReceiver(es,config2.BIOFLOWS_NAME)
 	default:
 		rec = logo.NewReceiver(os.Stdout,config2.BIOFLOWS_NAME)

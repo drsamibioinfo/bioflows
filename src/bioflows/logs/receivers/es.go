@@ -17,11 +17,18 @@ type ESReceiver struct{
 
 }
 
+func (es *ESReceiver) IsReady() bool {
+	if es.client == nil {
+		return false
+	}
+	return true
+}
+
 func (es *ESReceiver) SetConfig(config map[string]interface{}) {
 	es.Config = config
 }
 
-func (es *ESReceiver) setup() error {
+func (es *ESReceiver) Setup() error {
 	if es.client != nil {
 		return nil
 	}
@@ -79,9 +86,8 @@ func (es *ESReceiver) setup() error {
 }
 
 func (es *ESReceiver) Write(p []byte) (int,error){
-	err := es.setup()
-	if err != nil {
-		return 0 , err
+	if !es.IsReady() {
+		return 0 , fmt.Errorf("ElasticSearch Logging Receiver is not initialized yet.")
 	}
 	Prefix := config2.BIOFLOWS_DISPLAY_NAME
 	var level string = "INFO"
