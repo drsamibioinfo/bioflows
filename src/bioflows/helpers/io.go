@@ -28,3 +28,9 @@ func WriteOrAppend(filename string , data []byte , perm os.FileMode) error {
 	}
 	return err
 }
+
+
+func PathExists(filepath string) bool {
+	_ , err := os.Stat(filepath)
+	return !os.IsNotExist(err)
+}
