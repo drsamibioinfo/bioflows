@@ -16,8 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +25,8 @@ var pushCmd = &cobra.Command{
 	Short: "This command will push and register the tool in BioFlows Central Repository(Hub) or update an existing Tool by the Tool unique bioflowId.",
 	Long: `This command will push and register the tool in BioFlows Central Repository(Hub) or update an existing Tool by the Tool unique bioflowId.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("push called")
+		bfLogger.SetPrefix("Bioflows-Push")
+		bfLogger.Info("push called")
 	},
 }
 

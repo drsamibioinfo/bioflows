@@ -1,16 +1,16 @@
 package container
 
 import (
-	"bioflows/models"
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/bioflows/src/bioflows/models"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
+	"github.com/mbndr/logo"
 	"io"
-	"log"
 )
 
 const (
@@ -19,7 +19,7 @@ const (
 
 type DockerManager struct {
 	client *client.Client
-	logger *log.Logger
+	logger *logo.Logger
 	DockerConfig *container.Config
 	HostConfig *container.HostConfig
 	NetworkingConfig *network.NetworkingConfig
@@ -32,12 +32,11 @@ func (d *DockerManager) AddAttachableVolume(volumePath string) {
 	d.HostConfig.Binds = append(d.HostConfig.Binds,fmt.Sprintf("%s:%s",volumePath))
 }
 
-func (d *DockerManager) SetLogger(logger *log.Logger) {
+func (d *DockerManager) SetLogger(logger *logo.Logger) {
 	d.logger = logger
 }
 func (d *DockerManager) Log(logs ...interface{}) {
-	d.logger.Println(logs...)
-	fmt.Println(logs...)
+	d.logger.Info(logs...)
 }
 
 
@@ -105,7 +104,7 @@ func (d *DockerManager) RunContainer(containerName string , ImageId string, comm
 	}
 	err = d.client.ContainerStart(context.Background(),resp.ID,types.ContainerStartOptions{})
 	if err != nil {
-		fmt.Println(fmt.Sprintf("Container: %s",err.Error()))
+		d.Log((fmt.Sprintf("Container: %s",err.Error())))
 		return nil , nil , err
 	}
 	statusCh , errCh := d.client.ContainerWait(context.Background(),resp.ID,container.WaitConditionNotRunning)

@@ -1,15 +1,16 @@
 package executors
 
 import (
-	config2 "bioflows/config"
-	"bioflows/managers"
-	"bioflows/models"
-	"bioflows/models/pipelines"
-	"bioflows/resolver"
+	config2 "github.com/bioflows/src/bioflows/config"
+	"github.com/bioflows/src/bioflows/logs"
+	"github.com/bioflows/src/bioflows/managers"
+	"github.com/bioflows/src/bioflows/models"
+	"github.com/bioflows/src/bioflows/models/pipelines"
+	"github.com/bioflows/src/bioflows/resolver"
 	"errors"
 	"fmt"
 	"github.com/goombaio/dag"
-	"log"
+	"github.com/mbndr/logo"
 	"os"
 	"strconv"
 	"strings"
@@ -34,7 +35,7 @@ type PipelineExecutor struct {
 	stopChan chan interface{}
 	parentPipeline *pipelines.BioPipeline
 	ticker *time.Ticker
-	logger *log.Logger
+	logger *logo.Logger
 	containerConfig *models.ContainerConfig
 }
 
@@ -48,7 +49,7 @@ func (p *PipelineExecutor) GetPipelineOutput() models.FlowConfig {
 	pipelineKey := resolver.ResolvePipelineKey(p.parentPipeline.ID)
 	pipelineConfig , err := p.GetContext().GetStateManager().GetPipelineState(pipelineKey)
 	if err != nil {
-		fmt.Println(fmt.Sprintf("Unable to fetch Pipeline Configuration for %s",pipelineKey))
+		p.Log(fmt.Sprintf("Unable to fetch Pipeline Configuration for %s",pipelineKey))
 		return tempConfig
 	}
 	tempConfig.Fill(pipelineConfig)
@@ -109,7 +110,7 @@ func (p *PipelineExecutor) Run(b *pipelines.BioPipeline,config models.FlowConfig
 			switch r.(type) {
 			case error:
 				finalError = r.(error)
-				fmt.Println(fmt.Sprintf("Error: %s. Aborting.....",finalError.Error()))
+				p.Log(fmt.Sprintf("Error: %s. Aborting.....",finalError.Error()))
 			case string:
 				finalError = errors.New(r.(string))
 			default:
@@ -247,7 +248,7 @@ func (p *PipelineExecutor) executeSingleVertex(b *pipelines.BioPipeline , config
 				}
 				err = p.contextManager.SaveState(toolKey,toolInstanceFlowConfig.GetAsMap())
 				if err != nil {
-					fmt.Println(fmt.Sprintf("Received Error: %s",err.Error()))
+					p.Log(fmt.Sprintf("Received Error: %s",err.Error()))
 					return
 				}
 			}
@@ -284,7 +285,7 @@ func (p *PipelineExecutor) executeSingleVertex(b *pipelines.BioPipeline , config
 	case SHOULD_QUEUE:
 		if p.memory.AddToMemory(vertex){
 			//Spawn the current step until all other dependencies are run successfully
-			fmt.Println(fmt.Sprintf("Spawning Tool (%s) until dependencies finish execution....",currentFlow.Name))
+			p.Log(fmt.Sprintf("Spawning Tool (%s) until dependencies finish execution....",currentFlow.Name))
 			p.waitGroup.Add(1)
 		}
 
@@ -295,11 +296,11 @@ func (p *PipelineExecutor) executeSingleVertex(b *pipelines.BioPipeline , config
 	}
 }
 func (p *PipelineExecutor) runLocally(b *pipelines.BioPipeline, config models.FlowConfig) error {
-	fmt.Println(fmt.Sprintf("Running Pipeline (%s) Locally....",b.Name))
+	p.Log(fmt.Sprintf("Running Pipeline (%s) Locally....",b.Name))
 	//Create a Directed Acyclic Graph of the current pipeline
 	graph , err := pipelines.CreateGraph(b)
 	if err != nil {
-		fmt.Println(fmt.Sprintf("Received Error : %s",err.Error()))
+		p.Log(fmt.Sprintf("Received Error : %s",err.Error()))
 		return nil
 	}
 	parents := graph.SourceVertices()
@@ -320,7 +321,7 @@ func (p *PipelineExecutor) prepareConfig(b *pipelines.BioPipeline,config models.
 	pipelineKey := resolver.ResolvePipelineKey(b.ID)
 	pipelineConfig , err := p.GetContext().GetStateManager().GetPipelineState(pipelineKey)
 	if err != nil {
-		fmt.Println(fmt.Sprintf("Unable to fetch Pipeline Configuration for %s",pipelineKey))
+		p.Log(fmt.Sprintf("Unable to fetch Pipeline Configuration for %s",pipelineKey))
 		return tempConfig
 	}
 	tempConfig.Fill(pipelineConfig)
@@ -363,19 +364,20 @@ func (p *PipelineExecutor) createLogFile(config models.FlowConfig) error {
 		fmt.Sprintf("%v",config[config2.WF_INSTANCE_OUTDIR]),
 		"workflow.logs",
 	},"/")
-	p.logger = &log.Logger{}
+	p.logger = logs.NewLogger(config)
 	p.logger.SetPrefix(fmt.Sprintf("%v: ",config2.BIOFLOWS_DISPLAY_NAME))
 	file,  err := os.Create(workflowOutputFile)
 	if err != nil {
 		return err
 	}
-	p.logger.SetOutput(file)
+	rec := logo.NewReceiver(file,config2.BIOFLOWS_NAME)
+	p.logger.Receivers = append(p.logger.Receivers,rec)
 	return nil
 }
 
 func (p *PipelineExecutor) Log(logs ...interface{}) {
-	p.logger.Println(logs...)
-	fmt.Println(logs...)
+	p.logger.Info(logs...)
+
 }
 
 

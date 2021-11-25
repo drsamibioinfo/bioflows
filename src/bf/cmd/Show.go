@@ -16,7 +16,7 @@ limitations under the License.
 package cmd
 
 import (
-	"bioflows/cli"
+	"github.com/bioflows/src/bioflows/cli"
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/ttacon/chalk"
@@ -34,11 +34,11 @@ var ShowCmd = &cobra.Command{
 		filePath := args[0]
 		table , err := cli.GetRequirementsTableFor(filePath)
 		if err != nil {
-			fmt.Println(fmt.Sprintf("%s",err.Error()))
+			bfLogger.Error(fmt.Sprintf("%s",err.Error()))
 			return err
 		}
-		fmt.Println("")
-		fmt.Println(chalk.Underline.TextStyle("BioFlows Pipeline Input Requirements"))
+		bfLogger.Info("")
+		bfLogger.Info(chalk.Underline.TextStyle("BioFlows Pipeline Input Requirements"))
 		fmt.Println(table.String())
 		return nil
 	},

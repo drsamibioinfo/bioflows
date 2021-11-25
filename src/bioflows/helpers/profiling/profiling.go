@@ -1,7 +1,7 @@
 package profiling
 
 import (
-	"bioflows/models"
+	"github.com/bioflows/src/bioflows/models"
 	"log"
 	"net"
 	"runtime"

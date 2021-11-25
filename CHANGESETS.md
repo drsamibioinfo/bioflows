@@ -28,3 +28,12 @@ You have to use "self.the_name_of_the_variable = <Some Value> ".
 
 - Added the support for InLoop Scripts using `inloop` Directive. Either True or default is False
 
+# 1.0.0 Change Sets
+
+- Enabled Go Modules for automated Dependency management.
+- Bug Fixes for the DAG graph processing algorithm (Topology Sorting Algorithm), This algorithm is responsible 
+for weighing different pipeline steps and ranking them according to their execution order.
+
+- Bug Fixes for Validate Command Line Tool (CLT), now it supports reading pipeline inputs itself.
+
+

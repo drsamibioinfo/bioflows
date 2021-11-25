@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"bioflows/cli"
 	"fmt"
+	"github.com/bioflows/src/bioflows/cli"
 	"github.com/spf13/cobra"
 	"github.com/ttacon/chalk"
 )
@@ -16,28 +16,28 @@ var ValidateCmd = &cobra.Command{
     	The file path could be a Local File System Path or a remote URL.
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
-
+		bfLogger.SetPrefix("ValidateTool")
 		if len(args) <= 0 {
 			return cmd.Usage()
 		}
 		filePath := args[0]
 		valid, err := cli.ValidateYAML(filePath)
 		if err != nil {
-			fmt.Println(fmt.Sprintf("%s", err.Error()))
+			bfLogger.Error(fmt.Sprintf("%s", err.Error()))
 			return err
 		}
 		if valid {
-			fmt.Println("Validate Tool: The Tool is valid.")
+			bfLogger.Info("Validate Tool: The Tool is valid.")
 		} else {
-			fmt.Println("Validate Tool: The tool is not valid.")
+			bfLogger.Error("Validate Tool: The tool is not valid.")
 		}
 		table , err := cli.GetRequirementsTableFor(filePath)
 		if err != nil {
-			fmt.Println(fmt.Sprintf("%s",err.Error()))
+			bfLogger.Error(fmt.Sprintf("%s",err.Error()))
 			return err
 		}
-		fmt.Println("")
-		fmt.Println(chalk.Underline.TextStyle("BioFlows Pipeline Input Requirements"))
+		bfLogger.Info("")
+		bfLogger.Info(chalk.Underline.TextStyle("BioFlows Pipeline Input Requirements"))
 		fmt.Println(table.String())
 		return nil
 	},

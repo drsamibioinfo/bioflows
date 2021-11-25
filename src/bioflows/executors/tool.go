@@ -1,18 +1,19 @@
 package executors
 
 import (
-	"bioflows/config"
-	dockcontainer "bioflows/container"
-	"bioflows/expr"
-	"bioflows/helpers"
-	"bioflows/models"
-	"bioflows/process"
-	"bioflows/scripts"
-	"bioflows/virtualization"
 	"fmt"
 	"github.com/aidarkhanov/nanoid"
+	"github.com/bioflows/src/bioflows/config"
+	dockcontainer "github.com/bioflows/src/bioflows/container"
+	"github.com/bioflows/src/bioflows/expr"
+	"github.com/bioflows/src/bioflows/helpers"
+	"github.com/bioflows/src/bioflows/logs"
+	"github.com/bioflows/src/bioflows/models"
+	"github.com/bioflows/src/bioflows/process"
+	"github.com/bioflows/src/bioflows/scripts"
+	"github.com/bioflows/src/bioflows/virtualization"
 	"github.com/docker/docker/api/types/container"
-	"log"
+	"github.com/mbndr/logo"
 	"net/smtp"
 	"os"
 	"sort"
@@ -22,7 +23,7 @@ import (
 type ToolExecutor struct {
 	ToolInstance            *models.ToolInstance
 	ContainerManager        *virtualization.VirtualizationManager
-	toolLogger              *log.Logger
+	toolLogger              *logo.Logger
 	flowConfig              models.FlowConfig
 	exprManager             *expr.ExprManager
 	pipelineName            string
@@ -239,10 +240,8 @@ func (e *ToolExecutor) SetExplain(explain bool){
 
 func (e *ToolExecutor) init(flowConfig models.FlowConfig) error {
 	e.ContainerManager = nil
-	instanceId , err := nanoid.New()
-	if err != nil {
-		return err
-	}
+	instanceId  := nanoid.New()
+
 	e.instanceId = instanceId
 	e.flowConfig = flowConfig
 	e.AttachableVolumes = make([]models.Parameter,1)
@@ -254,14 +253,15 @@ func (e *ToolExecutor) init(flowConfig models.FlowConfig) error {
 	if err != nil {
 		return err
 	}
-	e.toolLogger = &log.Logger{}
+	e.toolLogger = logs.NewLogger(flowConfig)
 	e.toolLogger.SetPrefix(fmt.Sprintf("%v: ",config.BIOFLOWS_DISPLAY_NAME))
 	file , err := os.Create(logFileName)
 	if err != nil {
-		fmt.Printf("Can't Create Tool (%s) log file %s",e.ToolInstance.Name, logFileName)
+		e.Log("Can't Create Tool (%s) log file %s",e.ToolInstance.Name, logFileName)
 		return err
 	}
-	e.toolLogger.SetOutput(file)
+	e.toolLogger.Receivers = append(e.toolLogger.Receivers,logo.NewReceiver(file,config.BIOFLOWS_NAME))
+
 	//initialize Docker
 	hostConfig := &container.HostConfig{}
 	hostConfig.Binds = append(hostConfig.Binds,fmt.Sprintf("%s:%s",e.hostOutputDir,
@@ -274,13 +274,10 @@ func (e *ToolExecutor) init(flowConfig models.FlowConfig) error {
 	}
 	e.dockerManager.SetLogger(e.toolLogger)
 
-
-
 	return nil
 }
 func (e *ToolExecutor) Log(logs ...interface{}) {
-	e.toolLogger.Println(logs...)
-	fmt.Println(logs...)
+	e.toolLogger.Info(logs...)
 }
 func (e *ToolExecutor) isDockerized() bool {
 	result := e.ToolInstance.ImageId != "" && len(e.ToolInstance.ImageId) > 1
@@ -315,7 +312,7 @@ func (e *ToolExecutor) execute() (models.FlowConfig,error) {
 	}
 	e.Log(fmt.Sprintf("RunScript Command : %s",toolCommand))
 	if e.explain{
-		fmt.Printf("Explain => Tool Name: %s , Command: %s\n",e.ToolInstance.ID,toolCommand)
+		e.Log("Explain => Tool Name: %s , Command: %s\n",e.ToolInstance.ID,toolCommand)
 		goto AfterScriptsAndExit
 	}
 	if e.isDockerized() {
@@ -414,6 +411,7 @@ func (e *ToolExecutor) RunToolLoop(t *models.ToolInstance , workflowConfig model
 	if err != nil {
 		return nil , err
 	}
+	e.toolLogger.SetPrefix(t.ID)
 	e.Log(fmt.Sprintf("Tool (%s) is prepared successfully. ",t.Name))
 	return e.executeLoop()
 }
@@ -455,7 +453,7 @@ func (e *ToolExecutor) executeLoop()  (models.FlowConfig,error) {
 				}
 				e.Log(fmt.Sprintf("RunScript Command : %s",toolCommand))
 				if e.explain {
-					fmt.Printf("Explain => Tool Name: %s , Command: %s\n",e.ToolInstance.ID,toolCommand)
+					e.Log("Explain => Tool Name: %s , Command: %s\n",e.ToolInstance.ID,toolCommand)
 					goto AfterScriptsAndExit
 				}
 				if e.isDockerized() {
@@ -559,7 +557,8 @@ func (e *ToolExecutor) Run(t *models.ToolInstance, workflowConfig models.FlowCon
 	if err != nil {
 		return nil,err
 	}
-	fmt.Println(fmt.Sprintf("Running (%s) Tool...",t.Name))
+	e.toolLogger.SetPrefix(t.ID)
+	e.Log(fmt.Sprintf("Running (%s) Tool...",t.Name))
 	if e.AttachableVolumes != nil {
 		for _ , volume := range e.AttachableVolumes {
 			e.addAttachableVolume(&volume)

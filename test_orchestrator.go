@@ -1,8 +1,8 @@
 package main
 
 import (
-	"bioflows/kv"
-	"bioflows/services"
+	"github.com/bioflows/src/bioflows/kv"
+	"github.com/bioflows/src/bioflows/services"
 	"fmt"
 )
 

@@ -1,8 +1,8 @@
 package executors
 
 import (
-	"bioflows/models/pipelines"
-	"bioflows/resolver"
+	"github.com/bioflows/src/bioflows/models/pipelines"
+	"github.com/bioflows/src/bioflows/resolver"
 	"github.com/goombaio/dag"
 )
 

@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-import "bf/cmd"
+import "github.com/bioflows/src/bf/cmd"
 
 func main() {
 	cmd.Execute()

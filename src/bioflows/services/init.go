@@ -1,8 +1,8 @@
 package services
 
 import (
-	"bioflows/config"
-	"bioflows/kv"
+	"github.com/bioflows/src/bioflows/config"
+	"github.com/bioflows/src/bioflows/kv"
 	"github.com/hashicorp/consul/api"
 	"strings"
 )

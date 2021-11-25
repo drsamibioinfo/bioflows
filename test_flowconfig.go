@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bioflows/models"
+	"github.com/bioflows/src/bioflows/models"
 	json2 "encoding/json"
 	"fmt"
 )

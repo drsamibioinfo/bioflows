@@ -1,6 +1,6 @@
 package managers
 
-import "bioflows/models"
+import "github.com/bioflows/src/bioflows/models"
 
 type StateManager interface {
 	Setup(map[string]interface{}) error

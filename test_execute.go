@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bioflows/process"
+	"github.com/bioflows/src/bioflows/process"
 	"fmt"
 	"os"
 )

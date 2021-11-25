@@ -8,5 +8,6 @@ const (
 )
 
 func NewID() (string,error){
-	return nanoid.GenerateString(FLOWS_ALPHABET,SIZE)
+
+	return nanoid.Generate(FLOWS_ALPHABET,SIZE)
 }

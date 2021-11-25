@@ -1,7 +1,7 @@
 package services
 
 import (
-	"bioflows/kv"
+	"github.com/bioflows/src/bioflows/kv"
 	"github.com/hashicorp/consul/api"
 )
 

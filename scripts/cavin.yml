@@ -1,0 +1,96 @@
+id: cavindetect
+name: cavindetect
+type: pipeline
+inputs:
+  - type: directory
+    name: vep_cache
+    description: "A directory location where The Cache of VEP is stored"
+  - type: directory
+    name: vep_bin
+    description: "A directory where Variant Effect Predictor scripts exist"
+  - type: file
+    name: dbnsfp_file
+    description: "dbNSFP file to use"
+  - type: file
+    name: vcf_input
+    description: "Multi-Sample Joint VCF File to use for annotation and extracting variants for that particular gene"
+  - type: array
+    name: chrs
+    description: "Comma separated list of (i.e. chr1,chr2....) Chromosomes to select from the VCF file and filter out anything else"
+  - type: file
+    name: gene_names
+    description: "A text file containing Comma Separated List of Ensembl Gene Names to select for"
+  - type: file
+    name: ref_fasta
+    description: "Homo Sapiens GRCh38 Reference Fasta File"
+  - type: file
+    name: samples_file
+    description: "Comma separated file with [Samples,Severity]."
+scripts:
+  - type: js
+    before: true
+    code: >
+      self.chromosomes = self.chrs.split(",");
+      self.chromosomes = self.chromosomes.join(",");
+  - type: js
+    before: true
+    code: >
+      var splitted_file = self.vcf_input.split("/");
+      var filename = splitted_file[splitted_file.length - 1];
+      var splitted_name = filename.split(".");
+      self.vcf_input_name = splitted_name.slice(0,splitted_name.length-1);
+      self.vcf_input_name = self.vcf_input_name.join("");
+steps:
+  - id: normalize
+    name: normalize vcf file
+    description: "This step will left-align and normalize the input VCF file"
+    outputs:
+      - type: file
+        name: vcf_norm_out
+        description: "Normalized Output VCF file"
+        value: "{{self_dir}}/{{vcf_input_name}}.norm.vcf.gz"
+    command: "bcftools filter -r {{chromosomes}} {{vcf_input}} -Ou | bcftools norm -m -any --check-ref w -f {{ref_fasta}} -Oz > {{vcf_norm_out}}"
+  - id: normalize_index
+    name: Indexing the Normalized VCF
+    description: "This step will index the normalized output VCF file"
+    depends: normalize
+    command: "tabix {{normalize.vcf_norm_out}}"
+  - id: annotate
+    name: annotate Normalized VCF
+    description: "This step will annotate the normalized VCF file"
+    depends: normalize_index
+    outputs:
+      - type: file
+        name: annotated_vcf
+        description: "VEP Annotated VCF File as output"
+        value: "{{self_dir}}/{{vcf_input_name}}.norm.vep.vcf"
+    command: "vep -i {{normalize.vcf_norm_out}} --offline --fasta {{ref_fasta}} \
+    --plugin dbNSFP,{{dbnsfp_file}},Ensembl_geneid,Ensembl_transcriptid,Ensembl_proteinid,1000Gp3_EAS_AF,ExAC_EAS_AF,VEP_canonical,LRT_pred,SIFT_pred,MutationTaster_pred,Polyphen2_HDIV_pred,Polyphen2_HVAR_pred \
+    --everything \
+    --canonical \
+    --symbol \
+    --buffer_size 100000 \
+    --force_overwrite --dir_cache {{vep_cache}} --dir_plugins {{vep_cache}}/Plugins --cache --vcf -o {{annotated_vcf}} && tabix {{annotated_vcf}}"
+  - id: tabulate
+    name: tabulate
+    description: "Tabulate flow will select genes from the output VCF file from the previous annotation step"
+    depends: annotate
+    command: "tabulate --vcf={{annotate.annotated_vcf}} --samples={{samples_file}} --genes={{genes}} --out={{output_dir}}/all.results.csv"
+    scripts:
+      - type: js
+        before: true
+        code: >
+          var contents = io.ReadFile(self.gene_names);
+          contents = contents.split("\n");
+          self.genes = contents.join(",");
+  - id: extractvariants
+    name: extractvariants
+    description: "This pipeline will extract variants from annotated VCF file using VEP"
+    url: "file:///./extractvariants.yml"
+    type: pipeline
+    depends: annotate,tabulate
+    inputs:
+      - name: vcf_input
+        value: "{{annotate.annotated_vcf}}"
+      - name: genes_list
+        value: "{{gene_names}}"

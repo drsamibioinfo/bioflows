@@ -1,0 +1,30 @@
+id: extractvariants
+name: extractvariants
+type: pipeline
+description: "This pipeline will extract variants from annotated VCF file using VEP"
+inputs:
+  - type: file
+    name: vcf_input
+    description: "The input annotated VCF file to use"
+  - type: file
+    name: genes_list
+    description: "A single line separated file containing ensembl Gene IDs to select for"
+scripts:
+  - type: js
+    before: true
+    code: >
+      self.genes = io.ReadFile(self.genes_list);
+      self.genes = self.genes.split("\n");
+steps:
+  - id: extract
+    name: extract
+    loop: true
+    loop_var: "genes"
+    command: "filter_vep -i {{vcf_input}} --format vcf --filter 'Gene is {{genes_item}}' -o {{output_dir}}/{{genes_item}}.intermediate.vcf"
+  - id: impact
+    name: impactselection
+    loop: true
+    loop_var: "genes"
+    depends: extract
+    command: "filter_vep -i {{output_dir}}/{{genes_item}}.intermediate.vcf --format vcf --filter 'IMPACT in MODERATE,HIGH,MODIFIER' \
+   -o stdout | bgzip -c > {{output_dir}}/{{genes_item}}.final.vcf.gz && tabix {{output_dir}}/{{genes_item}}.final.vcf.gz"

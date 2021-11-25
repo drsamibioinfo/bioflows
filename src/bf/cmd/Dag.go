@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"bioflows/cli"
+	"github.com/bioflows/src/bioflows/cli"
 	"fmt"
 	"github.com/spf13/cobra"
 )
@@ -19,7 +19,7 @@ var DagCmd = &cobra.Command {
 		if len(PipelineFile) <= 0 {
 			return fmt.Errorf("BioFlows Dag requires two parameters")
 		}
-		dotString,  err := cli.RenderGraphViz(PipelineFile)
+		dotString,  err := cli.RenderGraphViz(PipelineFile,bfLogger)
 		if err != nil {
 			return err
 		}

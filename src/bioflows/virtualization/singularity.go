@@ -1,7 +1,7 @@
 package virtualization
 
 import (
-	"bioflows/models"
+	"github.com/bioflows/src/bioflows/models"
 	"bytes"
 )
 

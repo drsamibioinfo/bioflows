@@ -1,15 +1,15 @@
 package cli
 
 import (
-	"bioflows/config"
-	"bioflows/executors"
-	"bioflows/helpers"
-	"bioflows/models"
-	"bioflows/models/pipelines"
 	"fmt"
+	"github.com/bioflows/src/bioflows/config"
+	"github.com/bioflows/src/bioflows/executors"
+	"github.com/bioflows/src/bioflows/helpers"
+	"github.com/bioflows/src/bioflows/logs"
+	"github.com/bioflows/src/bioflows/models"
+	"github.com/bioflows/src/bioflows/models/pipelines"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"log"
 	"os"
 	"strings"
 )
@@ -21,7 +21,6 @@ func ReadConfig(cfgFile string) (models.FlowConfig,error) {
 	var Configuration models.SystemConfig = models.SystemConfig{}
 	err = yaml.Unmarshal(config_contents,&Configuration)
 	if err != nil {
-		fmt.Println(err.Error())
 		return nil , err
 	}
 	workflowConfig.Fill(Configuration.ToMap())
@@ -53,43 +52,44 @@ func RunTool(configFile string, toolPath string,workflowId string ,
 	tconfig models.FlowConfig) error{
 	tool := &pipelines.BioPipeline{}
 	workflowConfig := models.FlowConfig{}
+	cfg , err := ReadConfig(configFile)
+	if err != nil {
+		return err
+	}
+	logger := logs.NewLogger(cfg)
 	if !helpers.IsValidUrl(toolPath){
 		tool_in, err := os.Open(toolPath)
 		if err != nil {
-			fmt.Printf("There was an error opening the tool file, %v\n",err)
+			logger.Error("There was an error opening the tool file, %v\n",err)
 			os.Exit(1)
 		}
 		mytool_content, err := ioutil.ReadAll(tool_in)
 		if err != nil {
-			fmt.Printf("Error reading the contents of the tool , %v\n",err)
+			logger.Error("Error reading the contents of the tool , %v\n",err)
 			os.Exit(1)
 		}
 		err = yaml.Unmarshal([]byte(mytool_content),tool)
 		if err != nil {
 			//fmt.Println("There was a problem unmarshaling the current tool")
-			fmt.Println(err.Error())
+			logger.Error(err.Error())
 			return err
 		}
+		logger.SetPrefix(tool.ID)
 	}else{
 		//Download the tool remotely
 		err := helpers.DownloadBioFlowFile(tool,toolPath)
 		if err != nil {
-			fmt.Println(fmt.Sprintf("Error Downloading the file: %s",err.Error()))
+			logger.Error(fmt.Sprintf("Error Downloading the file: %s",err.Error()))
 			return err
 		}
 	}
-	BfConfig , err := ReadConfig(configFile)
-	if err != nil {
-		fmt.Println(err.Error())
-		return err
-	}
-	workflowConfig.Fill(BfConfig)
+	workflowConfig.Fill(cfg)
 	volumes , err := GetAttachableVolumes(tool)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Received Error: %s",err.Error()))
+		logger.Fatal(fmt.Sprintf("Received Error: %s",err.Error()))
 		return err
 	}
-	fmt.Println("Executing the current tool.")
+	logger.Info("Executing the current tool.")
 	executor := executors.ToolExecutor{}
 	executor.SetAttachableVolumes(volumes)
 	executor.SetPipelineName(workflowName)
@@ -116,7 +116,7 @@ func RunTool(configFile string, toolPath string,workflowId string ,
 	}
 	_ , err = funcCall(&models.ToolInstance{WorkflowID: workflowId,Name: workflowName ,WorkflowName: workflowName,Tool:tool.ToTool()},workflowConfig)
 	if err != nil {
-		fmt.Println(err)
+		logger.Error(err)
 	}
 	return err
 
