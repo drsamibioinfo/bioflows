@@ -10,5 +10,5 @@ steps:
     inputs:
       - type: string
         name: myvar
-        value: "Mohamed Fawzy"
+        value: "XXXXXX"
     command: echo {{myvar}}
