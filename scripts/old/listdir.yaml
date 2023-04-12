@@ -9,13 +9,13 @@ discussions:
 website: http://john.university.com
 version: 1.0.0
 notification:
-      to: aalhossary@pmail.ntu.edu.sg
+      to: XXXXXX@pmail.ntu.edu.sg
       title: "List Dir has finished"
       body: "List Dir has finished"
 maintainer:
   -fullname: XXXXXX
   email: XXXXXX@gmail.com
-  username: mfawzy
+  username: XXXXX
 outputs:
   - type: file
     name: output_file
