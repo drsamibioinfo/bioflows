@@ -13,8 +13,8 @@ notification:
       title: "List Dir has finished"
       body: "List Dir has finished"
 maintainer:
-  -fullname: mohamed ibrahim
-  email: mfawzy.sami@gmail.com
+  -fullname: XXXXXX
+  email: XXXXXX@gmail.com
   username: mfawzy
 outputs:
   - type: file
