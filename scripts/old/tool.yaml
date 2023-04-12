@@ -13,9 +13,9 @@ icon: here you can place hexadecimal value of an icon in png format
 # as a decision tool
 shadow: false
 maintainer:
-    -fullname: mohamed ibrahim
-    email: mfawzy.sami@gmail.com
-    username: mfawzy
+    -fullname: XXXXXXX
+    email: XXXXXXX@gmail.com
+    username: XXXXXX
 
 references:
   - name: "name of the reference"
@@ -27,7 +27,7 @@ inputs:
     displayname: the input directory for the command
     name: input_dir
     description: long or short description about the parameter goes here
-    value: /home/snouto
+    value: /home/XXXXX
 
 outputs:
   - type: string
@@ -41,12 +41,12 @@ scripts:
     before: true
     order: 1
     code: >
-      self.input_dir = "/home/snouto/projects";
+      self.input_dir = "/home/XXXX/projects";
   - type: js
     order: 2
     before: true
     code: >
-      self.input_dir = "/home/snouto/Downloads";
+      self.input_dir = "/home/XXXX/Downloads";
 
 # this tool has no outputs
 command: ls -ll {{input_dir}} > {{self_dir}}/{{output_file}}
